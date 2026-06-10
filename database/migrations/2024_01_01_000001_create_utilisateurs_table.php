@@ -22,6 +22,7 @@ return new class extends Migration
             $table->dateTime('expiration_token')->nullable();
             $table->boolean('is_admin')->default(false);
             $table->boolean('est_actif')->default(true);
+            $table->timestamps();
         });
     }
 
