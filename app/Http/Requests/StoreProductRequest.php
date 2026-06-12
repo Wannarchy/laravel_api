@@ -23,6 +23,7 @@ class StoreProductRequest extends FormRequest
             'stripe_price_id_monthly' => ['nullable', 'string', 'max:120'],
             'stripe_price_id_yearly' => ['nullable', 'string', 'max:120'],
             'is_available' => ['nullable', 'boolean'],
+            'stock' => ['nullable', 'integer', 'min:0'],
             'is_featured' => ['nullable', 'boolean'],
             'featured_order' => ['nullable', 'integer', 'min:0'],
         ];

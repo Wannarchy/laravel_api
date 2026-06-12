@@ -20,6 +20,7 @@ class Product extends Model
         'stripe_price_id_monthly',
         'stripe_price_id_yearly',
         'is_available',
+        'stock',
         'is_featured',
         'featured_order',
     ];
@@ -30,8 +31,14 @@ class Product extends Model
             'price_monthly' => 'decimal:2',
             'price_yearly' => 'decimal:2',
             'is_available' => 'boolean',
+            'stock' => 'integer',
             'is_featured' => 'boolean',
         ];
+    }
+
+    public function isPurchasable(): bool
+    {
+        return $this->is_available && (int) $this->stock > 0;
     }
 
     public function category(): BelongsTo

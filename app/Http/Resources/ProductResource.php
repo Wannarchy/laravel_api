@@ -20,6 +20,8 @@ class ProductResource extends JsonResource
             'stripe_price_id_monthly' => $this->when($request->user()?->is_admin, $this->stripe_price_id_monthly),
             'stripe_price_id_yearly' => $this->when($request->user()?->is_admin, $this->stripe_price_id_yearly),
             'is_available' => (bool) $this->is_available,
+            'stock' => (int) $this->stock,
+            'is_purchasable' => (bool) $this->is_available && (int) $this->stock > 0,
             'is_featured' => (bool) $this->is_featured,
             'featured_order' => $this->featured_order,
             'created_at' => $this->created_at,

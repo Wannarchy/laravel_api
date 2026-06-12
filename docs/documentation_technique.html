@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CYNA — Documentation technique (Front &amp; Back)</title>
+<style>
+  :root{--blue:#1a2980;--cyan:#26d0ce;--ink:#0b1020;--muted:#5b6477;--border:#e2e6ef;--code:#0f1628;}
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1a2030;line-height:1.6;margin:0;background:#f4f6fb;}
+  .toolbar{position:sticky;top:0;z-index:50;background:#0b1020;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+  .toolbar h1{font-size:1rem;margin:0;font-weight:700;letter-spacing:.3px;}
+  .toolbar button{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:.85rem;font-weight:700;cursor:pointer;}
+  .toolbar button:hover{opacity:.9;}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 32px 80px;background:#fff;}
+  h1.title{font-size:2rem;color:var(--blue);margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:.95rem;margin-bottom:28px;}
+  h2{font-size:1.35rem;color:var(--blue);border-bottom:2px solid var(--cyan);padding-bottom:6px;margin-top:42px;}
+  h3{font-size:1.08rem;color:#16203a;margin-top:26px;}
+  h4{font-size:.96rem;color:#27324d;margin-top:18px;}
+  code{background:#eef1f8;padding:1px 6px;border-radius:5px;font-family:'SFMono-Regular',Consolas,monospace;font-size:.85em;color:#b3306b;}
+  pre{background:var(--code);color:#e8eaf2;padding:16px;border-radius:10px;overflow:auto;font-size:.82rem;line-height:1.5;}
+  pre code{background:none;color:inherit;padding:0;}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.88rem;}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:#eef1f8;font-weight:700;}
+  tr:nth-child(even) td{background:#fafbfe;}
+  .tag{display:inline-block;background:#eaf8f8;color:#0c7c7a;border:1px solid #b6e7e6;border-radius:20px;padding:1px 9px;font-size:.74rem;font-weight:700;}
+  .tag.post{background:#eef3ff;color:#2952cc;border-color:#c2d2ff;}
+  .tag.put{background:#fff5e6;color:#b5710a;border-color:#ffdca8;}
+  .tag.del{background:#ffeef0;color:#c0334a;border-color:#ffc8d1;}
+  .tag.patch{background:#f3eeff;color:#7a3fcc;border-color:#dcc9ff;}
+  .note{background:#f0f7ff;border-left:4px solid var(--cyan);padding:12px 16px;border-radius:6px;margin:16px 0;font-size:.9rem;}
+  .warn{background:#fff8ec;border-left:4px solid #f5a623;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:.9rem;}
+  .toc{background:#fafbfe;border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:24px 0;}
+  .toc ol{margin:0;padding-left:20px;}
+  .toc a{color:var(--blue);text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:.8rem;text-align:center;}
+  @media print{
+    .toolbar{display:none;}
+    body{background:#fff;}
+    .wrap{max-width:none;padding:0;}
+    pre{white-space:pre-wrap;word-break:break-word;border:1px solid #ccc;}
+    h2{page-break-after:avoid;}
+    table,pre{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <h1>CYNA — Documentation technique</h1>
+  <button onclick="window.print()">⬇ Télécharger / Imprimer en PDF</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">Documentation technique — CYNA</h1>
+  <div class="sub">
+    Plateforme SaaS de cybersécurité · Frontend PHP (<code>Cyna_front</code>) + API Laravel (<code>cyna-api</code>)<br>
+    Version 2.0 · 12 juin 2026 · SUP DE VINCI B3 — Groupe 2
+  </div>
+
+  <div class="note">
+    <strong>Comment obtenir le PDF :</strong> cliquez sur le bouton
+    « ⬇ Télécharger / Imprimer en PDF » en haut à droite, puis choisissez
+    « Enregistrer au format PDF » comme imprimante.
+  </div>
+
+  <div class="toc">
+    <strong>Sommaire</strong>
+    <ol>
+      <li><a href="#vue">Vue d'ensemble &amp; architecture</a></li>
+      <li><a href="#back">Backend — cyna-api (Laravel)</a></li>
+      <li><a href="#front">Frontend — Cyna_front (PHP)</a></li>
+      <li><a href="#client">Client API &amp; intégration HTTP</a></li>
+      <li><a href="#api">Référence API REST</a></li>
+      <li><a href="#auth">Authentification (Sanctum)</a></li>
+      <li><a href="#bdd">Base de données</a></li>
+      <li><a href="#deploy">Déploiement (Render)</a></li>
+      <li><a href="#env">Variables d'environnement</a></li>
+      <li><a href="#local">Installation locale (WAMP + Laravel)</a></li>
+      <li><a href="#tshoot">Dépannage (problèmes connus)</a></li>
+    </ol>
+  </div>
+
+  <h2 id="vue">1. Vue d'ensemble &amp; architecture</h2>
+  <p>
+    CYNA est une plateforme e-commerce de services de cybersécurité (SOC, EDR, XDR,
+    audit de conformité) proposés sous forme d'abonnements mensuels ou annuels.
+    Le projet est <strong>découplé</strong> en deux applications indépendantes :
+  </p>
+  <table>
+    <tr><th>Composant</th><th>Technologie</th><th>Rôle</th></tr>
+    <tr><td><code>Cyna_front</code></td><td>PHP 8 (WAMP/Apache)</td><td>Site public + back-office, rendu serveur (pas de framework)</td></tr>
+    <tr><td><code>cyna-api</code></td><td>Laravel 13 / PHP 8.4</td><td>API REST JSON, logique métier, base de données, paiements</td></tr>
+  </table>
+  <p>Le front ne se connecte <strong>plus directement</strong> à une base de données : toutes les données transitent par l'API via HTTP/cURL.</p>
+<pre><code>Navigateur
+    │  HTTP
+    ▼
+Cyna_front (PHP / WAMP)         http://localhost/Cyna_front/
+    │  cURL  (Bearer token Sanctum)
+    ▼
+API Laravel (Render)           https://laravel-api-1-zb19.onrender.com/api
+    │
+    ▼
+PostgreSQL (Render/Supabase) + Stripe + SMTP</code></pre>
+
+  <h2 id="back">2. Backend — cyna-api (Laravel)</h2>
+  <h3>Stack</h3>
+  <table>
+    <tr><th>Paquet</th><th>Version</th><th>Usage</th></tr>
+    <tr><td>php</td><td>^8.4</td><td>Runtime</td></tr>
+    <tr><td>laravel/framework</td><td>^13.8</td><td>Framework</td></tr>
+    <tr><td>laravel/sanctum</td><td>^4.3</td><td>Auth API par token</td></tr>
+    <tr><td>laravel/cashier</td><td>^16.5</td><td>Abonnements Stripe</td></tr>
+    <tr><td>laravel/tinker</td><td>^3.0</td><td>REPL</td></tr>
+  </table>
+  <div class="warn">
+    <strong>Dépendance système :</strong> <code>laravel/cashier</code> requiert
+    <code>moneyphp/money</code> qui exige l'extension PHP <code>bcmath</code>.
+    Elle est installée dans le <code>Dockerfile</code> via
+    <code>docker-php-ext-install ... bcmath</code>.
+  </div>
+
+  <h3>Organisation (principaux dossiers)</h3>
+<pre><code>cyna-api/
+├── app/Http/Controllers/Api/      # Contrôleurs publics + protégés
+│   └── Admin/                     # Contrôleurs back-office
+├── app/Http/Resources/            # Transformation JSON (UserResource, ProductResource...)
+├── app/Models/                    # Eloquent (Product, Order, ProductSubscription...)
+├── routes/api.php                 # Définition des routes API
+├── database/migrations/           # Schéma BDD
+├── Dockerfile                     # Image de déploiement
+└── render.yaml                    # Services Render (web + worker queue)</code></pre>
+
+  <h3>Middlewares de routes</h3>
+  <table>
+    <tr><th>Middleware</th><th>Effet</th></tr>
+    <tr><td><code>auth:sanctum</code></td><td>Exige un token Bearer valide</td></tr>
+    <tr><td><code>active</code></td><td>Refuse les comptes désactivés</td></tr>
+    <tr><td><code>admin</code></td><td>Réserve la route aux administrateurs</td></tr>
+    <tr><td><code>throttle:60,1</code></td><td>Limite à 60 requêtes/min (routes auth)</td></tr>
+  </table>
+
+  <h2 id="front">3. Frontend — Cyna_front (PHP)</h2>
+  <h3>Arborescence</h3>
+<pre><code>Cyna_front/
+├── index.php                      # Accueil (carrousel, catégories, produits)
+├── config/
+│   ├── api.php                    # URL de l'API + options SSL, charge .env
+│   └── config.php                 # Bootstrap (session unifiée, $connexion=null)
+├── includes/
+│   ├── api_client.php             # Classe ApiClient (cURL, repli SSL)
+│   ├── home_repository.php        # Accueil/catégories/produits via API + helpers
+│   ├── catalog_repository.php     # Catalogue par catégorie
+│   ├── product_repository.php     # Fiche produit
+│   ├── cart_repository.php        # Panier (session)
+│   ├── search_repository.php      # Recherche/filtre
+│   ├── function.php               # Helpers session
+│   ├── csrf.php                   # Protection CSRF (formulaires front)
+│   └── lang.php                   # i18n fr/en/ar/he (+ RTL)
+├── public/                        # Pages (connexion, catalogue, panier, checkout...)
+├── admin/                         # Back-office (login 2FA, CRUD via API)
+└── .env                           # CYNA_API_URL, CYNA_API_SSL_VERIFY (non versionné)</code></pre>
+
+  <h3>Pages principales (public/)</h3>
+  <table>
+    <tr><th>Page</th><th>Rôle</th><th>Endpoints API</th></tr>
+    <tr><td>connexion.php / inscription.php</td><td>Auth</td><td><code>POST /auth/login</code>, <code>/register</code></td></tr>
+    <tr><td>catalogue.php / produit.php</td><td>Catalogue</td><td><code>GET /products</code>, <code>/categories</code></td></tr>
+    <tr><td>panier.php / checkout.php</td><td>Panier &amp; commande</td><td><code>GET /billing/config</code>, <code>POST /orders</code></td></tr>
+    <tr><td>mon-compte.php / adresses.php</td><td>Compte</td><td><code>GET/PUT /profile</code>, <code>/addresses</code></td></tr>
+    <tr><td>paiements.php</td><td>Moyens de paiement (Stripe.js)</td><td><code>/payment-methods</code></td></tr>
+    <tr><td>mes-commandes.php / mes-abonnements.php</td><td>Historique</td><td><code>/orders</code>, <code>/subscriptions</code></td></tr>
+    <tr><td>Contact.php</td><td>Chatbot</td><td><code>POST /chat</code></td></tr>
+  </table>
+
+  <h3>Gestion de session (point important)</h3>
+  <div class="note">
+    Toutes les pages partagent <strong>un seul dépôt de sessions</strong> (le dossier
+    par défaut de PHP). <code>config/config.php</code> ne redéfinit pas
+    <code>session_save_path</code> afin d'éviter un « split » entre les pages qui
+    démarrent la session avant ou après l'inclusion de la config.
+    Les données de session clés sont :
+    <code>api_token</code>, <code>utilisateur_id</code>, <code>is_admin</code>,
+    <code>cart</code>.
+  </div>
+
+  <h2 id="client">4. Client API &amp; intégration HTTP</h2>
+  <p>La classe <code>ApiClient</code> (<code>includes/api_client.php</code>) centralise
+  tous les appels. Caractéristiques :</p>
+  <ul>
+    <li>Construction de l'URL : <code>API_BASE_URL + '/api'</code></li>
+    <li>Headers : <code>Accept</code> et <code>Content-Type: application/json</code></li>
+    <li>Bearer token Sanctum ajouté pour les routes protégées (<code>$auth=true</code>)</li>
+    <li>Stockage de la session après login (<code>storeAuthSession</code>)</li>
+    <li><strong>Repli SSL automatique</strong> : si cURL échoue sur un certificat
+      (erreurs 35/60/…), nouvelle tentative sans vérification — utile sous WAMP/Windows.</li>
+    <li>Messages d'erreur explicites (HTTP, JSON, validation Laravel).</li>
+  </ul>
+<pre><code>// Exemples d'utilisation
+api_client()->getProducts(['is_featured' => 'true']);
+api_client()->login($email, $password);   // stocke api_token + is_admin en session
+api_client()->getProfile();                // route protégée (Bearer)
+api_client()->createOrder($payload);</code></pre>
+
+  <h2 id="api">5. Référence API REST</h2>
+  <p><strong>Base :</strong> <code>https://laravel-api-1-zb19.onrender.com/api</code> ·
+  <strong>Format :</strong> JSON · enveloppe <code>{ "data": ... }</code>.</p>
+
+  <h3>5.1 Public</h3>
+  <table>
+    <tr><th>Méthode</th><th>Route</th><th>Description</th></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/register</td><td>Inscription</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/login</td><td>Connexion → <code>{ user, token }</code></td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/forgot-password</td><td>Demande de réinitialisation</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/reset-password</td><td>Réinitialisation</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/verify-email</td><td>Vérification email</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/resend-verification-email</td><td>Renvoi du mail (non connecté)</td></tr>
+    <tr><td><span class="tag">GET</span></td><td>/products · /products/{id}</td><td>Catalogue (filtres <code>category_id</code>, <code>is_featured</code>)</td></tr>
+    <tr><td><span class="tag">GET</span></td><td>/categories</td><td>Catégories actives</td></tr>
+    <tr><td><span class="tag">GET</span></td><td>/homepage</td><td>Slides + texte d'accueil</td></tr>
+    <tr><td><span class="tag">GET</span></td><td>/billing/config</td><td>Clé publique Stripe</td></tr>
+  </table>
+
+  <h3>5.2 Protégé (Bearer token)</h3>
+  <table>
+    <tr><th>Méthode</th><th>Route</th><th>Description</th></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/auth/logout</td><td>Révoque le token</td></tr>
+    <tr><td><span class="tag">GET</span> <span class="tag put">PUT</span></td><td>/profile</td><td>Profil utilisateur</td></tr>
+    <tr><td><span class="tag">GET</span></td><td>/billing/setup-intent</td><td>Intent Stripe (ajout carte)</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/billing/checkout · /billing/checkout/success</td><td>Paiement Stripe</td></tr>
+    <tr><td><span class="tag">GET</span> <span class="tag post">POST</span></td><td>/orders · /orders/{id}</td><td>Commandes</td></tr>
+    <tr><td><span class="tag">GET</span> <span class="tag post">POST</span></td><td>/subscriptions · /subscriptions/{id}/cancel</td><td>Abonnements</td></tr>
+    <tr><td><span class="tag">GET</span> <span class="tag post">POST</span> <span class="tag put">PUT</span> <span class="tag del">DEL</span></td><td>/addresses · /addresses/{id}</td><td>Carnet d'adresses</td></tr>
+    <tr><td><span class="tag">GET</span> <span class="tag post">POST</span> <span class="tag del">DEL</span></td><td>/payment-methods · /{id}/default</td><td>Moyens de paiement</td></tr>
+    <tr><td><span class="tag post">POST</span></td><td>/promo-codes/validate</td><td>Validation code promo</td></tr>
+    <tr><td><span class="tag post">POST</span> <span class="tag">GET</span></td><td>/chat · /chat/history</td><td>Chatbot</td></tr>
+  </table>
+
+  <h3>5.3 Admin (token + rôle admin)</h3>
+  <table>
+    <tr><th>Ressource</th><th>Routes</th></tr>
+    <tr><td>Utilisateurs</td><td><code>GET /admin/users</code>, <code>GET/PUT/DELETE /admin/users/{id}</code></td></tr>
+    <tr><td>Produits</td><td><code>GET/POST /admin/products</code>, <code>PUT/DELETE /admin/products/{id}</code></td></tr>
+    <tr><td>Catégories</td><td><code>GET/POST /admin/categories</code>, <code>PUT/DELETE /admin/categories/{id}</code></td></tr>
+    <tr><td>Commandes</td><td><code>GET /admin/orders</code>, <code>GET /admin/orders/{id}</code>, <code>PATCH /admin/orders/{id}/status</code></td></tr>
+    <tr><td>Codes promo</td><td><code>GET/POST /admin/promo-codes</code>, <code>PUT/DELETE /admin/promo-codes/{id}</code></td></tr>
+    <tr><td>Homepage</td><td><code>PUT /admin/homepage/slides</code>, <code>DELETE /admin/homepage/slides/{id}</code>, <code>PUT /admin/homepage/content</code></td></tr>
+    <tr><td>Chat</td><td><code>GET /admin/chat-logs</code></td></tr>
+  </table>
+
+  <h3>5.4 Exemple cURL</h3>
+<pre><code>curl -X POST "https://laravel-api-1-zb19.onrender.com/api/auth/login" \
+  -H "Content-Type: application/json" -H "Accept: application/json" \
+  -d '{"email":"user@example.com","password":"motdepasse123"}'</code></pre>
+
+  <h2 id="auth">6. Authentification (Sanctum)</h2>
+  <ol>
+    <li>Le front envoie <code>POST /auth/login</code> avec email + mot de passe.</li>
+    <li>L'API retourne <code>{ data: { user, token } }</code> (token Sanctum).</li>
+    <li>Le front stocke le token et l'utilisateur en session
+      (<code>api_token</code>, <code>utilisateur_id</code>, <code>is_admin</code>).</li>
+    <li>Les requêtes protégées envoient <code>Authorization: Bearer {token}</code>.</li>
+    <li><code>POST /auth/logout</code> révoque le token côté API.</li>
+  </ol>
+  <div class="note">La protection <code>csrf.php</code> du front concerne uniquement les
+  formulaires PHP (jeton en session). Elle est indépendante de l'API, qui est
+  stateless (token).</div>
+
+  <h2 id="bdd">7. Base de données</h2>
+  <p>PostgreSQL en production. Tables principales (migrations Laravel) :</p>
+  <table>
+    <tr><th>Table</th><th>Contenu</th></tr>
+    <tr><td>utilisateurs</td><td>Comptes (clients + admins), <code>is_admin</code>, <code>est_actif</code>, <code>est_confirme</code></td></tr>
+    <tr><td>categories</td><td>Catégories de services</td></tr>
+    <tr><td>products</td><td>Services SaaS (prix mensuel/annuel, IDs Stripe)</td></tr>
+    <tr><td>orders / order_items</td><td>Commandes &amp; lignes</td></tr>
+    <tr><td>product_subscriptions</td><td>Abonnements (renommé depuis subscriptions)</td></tr>
+    <tr><td>subscriptions / subscription_items</td><td>Cashier (Stripe)</td></tr>
+    <tr><td>user_addresses / user_payment_methods</td><td>Adresses &amp; cartes</td></tr>
+    <tr><td>homepage_slides / homepage_content</td><td>Contenu de l'accueil</td></tr>
+    <tr><td>promo_codes</td><td>Codes promotionnels</td></tr>
+    <tr><td>chat_logs</td><td>Conversations chatbot</td></tr>
+    <tr><td>personal_access_tokens</td><td>Tokens Sanctum</td></tr>
+    <tr><td>jobs / cache</td><td>File d'attente &amp; cache (driver database)</td></tr>
+  </table>
+
+  <h2 id="deploy">8. Déploiement (Render)</h2>
+  <p><code>render.yaml</code> définit deux services Docker (région Frankfurt, plan free) :</p>
+  <table>
+    <tr><th>Service</th><th>Type</th><th>Commande</th></tr>
+    <tr><td>cyna-api</td><td>web</td><td><code>php artisan serve</code> (healthcheck <code>/up</code>)</td></tr>
+    <tr><td>cyna-api-queue</td><td>worker</td><td><code>php artisan queue:work</code> (emails)</td></tr>
+  </table>
+  <p>Build via <code>Dockerfile</code> : PHP 8.4, extensions <code>pdo_pgsql</code>,
+  <code>pgsql</code>, <code>opcache</code>, <code>bcmath</code>, puis
+  <code>composer install --no-dev --optimize-autoloader</code>.</p>
+  <div class="warn"><strong>Cold start :</strong> sur le plan gratuit, la première requête
+  après inactivité peut prendre 30–60 s (le service se réveille).</div>
+
+  <h2 id="env">9. Variables d'environnement</h2>
+  <h3>API (cyna-api) — Render</h3>
+<pre><code>APP_ENV=production
+APP_KEY=base64:...            # généré
+DB_CONNECTION=pgsql
+DB_HOST / DB_USERNAME / DB_PASSWORD=...   # secrets
+DB_SSLMODE=require
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+MAIL_*=...                    # SMTP
+STRIPE_KEY / STRIPE_SECRET / STRIPE_WEBHOOK_SECRET=...
+CASHIER_CURRENCY=eur</code></pre>
+  <h3>Front (Cyna_front/.env)</h3>
+<pre><code># URL de l'API (sans /api final)
+CYNA_API_URL=https://laravel-api-1-zb19.onrender.com
+# Local : CYNA_API_URL=http://127.0.0.1:8000
+
+# Vérification SSL cURL (un repli auto se déclenche en cas d'échec)
+CYNA_API_SSL_VERIFY=true</code></pre>
+
+  <h2 id="local">10. Installation locale</h2>
+  <h3>Backend (API Laravel)</h3>
+<pre><code>cd cyna-api
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve            # http://127.0.0.1:8000</code></pre>
+  <h3>Frontend (WAMP)</h3>
+  <ol>
+    <li>Placer <code>Cyna_front</code> dans <code>C:\wamp64\www\</code></li>
+    <li>Créer <code>Cyna_front/.env</code> avec <code>CYNA_API_URL</code></li>
+    <li>Vérifier que l'extension <code>curl</code> est activée dans <code>php.ini</code></li>
+    <li>Ouvrir <code>http://localhost/Cyna_front/index.php</code></li>
+  </ol>
+  <div class="note">Outils de diagnostic fournis :
+  <code>public/diag_api.php</code> (test connexion API) et
+  <code>public/_diag.php</code> (test session/CSRF). À supprimer en production.</div>
+
+  <h2 id="tshoot">11. Dépannage (problèmes connus)</h2>
+  <table>
+    <tr><th>Symptôme</th><th>Cause</th><th>Solution</th></tr>
+    <tr><td><code>Token CSRF invalide</code> à la connexion</td><td>Sessions non partagées entre pages (save_path)</td><td>Session unifiée sur le dossier par défaut (corrigé dans <code>config.php</code>)</td></tr>
+    <tr><td>Connecté mais l'affichage ne change pas</td><td>Split-brain de session (start avant/après config)</td><td>Vider les cookies puis se reconnecter</td></tr>
+    <tr><td>Liste de produits vide</td><td>Échec SSL cURL sous WAMP</td><td>Repli SSL auto + <code>CYNA_API_SSL_VERIFY=false</code> en local</td></tr>
+    <tr><td>Build Render échoue (<code>ext-bcmath</code>)</td><td>Extension manquante</td><td>Ajout de <code>bcmath</code> dans le <code>Dockerfile</code></td></tr>
+    <tr><td>Erreur <code>cURL non activé</code></td><td>Extension curl désactivée</td><td>Décommenter <code>extension=curl</code> dans php.ini, redémarrer Apache</td></tr>
+    <tr><td>API lente au 1er appel</td><td>Cold start Render (plan free)</td><td>Patienter 30–60 s</td></tr>
+  </table>
+
+  <footer>
+    CYNA-IT — 10 Rue de Penthièvre, 75008 Paris — SIRET : 91371103200015<br>
+    Document généré pour le projet CYNA · SUP DE VINCI B3 — Groupe 2
+  </footer>
+</div>
+</body>
+</html>

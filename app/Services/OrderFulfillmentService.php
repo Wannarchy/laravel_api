@@ -17,6 +17,13 @@ class OrderFulfillmentService
     {
         return collect($items)->map(function (array $item) {
             $product = Product::findOrFail($item['product_id']);
+
+            if (! $product->isPurchasable()) {
+                throw new InvalidArgumentException(
+                    "Le produit « {$product->name} » est indisponible (rupture de stock)."
+                );
+            }
+
             $cycle = $item['cycle'];
             $price = $cycle === 'yearly'
                 ? (float) $product->price_yearly
@@ -116,6 +123,10 @@ class OrderFulfillmentService
                 ]);
 
                 if ($order->status === 'paid') {
+                    Product::where('id', $line['product']->id)
+                        ->where('stock', '>', 0)
+                        ->decrement('stock');
+
                     $nextBilling = $line['cycle'] === 'yearly'
                         ? now()->addYear()
                         : now()->addMonth();
