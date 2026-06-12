@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminContactController;
 use App\Http\Controllers\Api\Admin\AdminChatController;
 use App\Http\Controllers\Api\Admin\AdminHomepageController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\HomepageController;
 use App\Http\Controllers\Api\OrderController;
@@ -35,6 +37,7 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/homepage', [HomepageController::class, 'index']);
 Route::get('/billing/config', [BillingController::class, 'config']);
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:10,1');
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -100,4 +103,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(f
     Route::put('/homepage/content', [AdminHomepageController::class, 'updateContent']);
 
     Route::get('/chat-logs', [AdminChatController::class, 'index']);
+    Route::get('/contact-messages', [AdminContactController::class, 'index']);
+    Route::post('/contact-messages/{id}/reply', [AdminContactController::class, 'reply']);
 });

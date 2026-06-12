@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>CYNA — Fonctionnalités du projet</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #1a1a2e;
+      line-height: 1.55;
+      font-size: 11pt;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 { font-size: 22pt; color: #1a2980; margin: 0 0 6px; border-bottom: 3px solid #26d0ce; padding-bottom: 10px; }
+    h2 { font-size: 14pt; color: #1a2980; margin: 28px 0 10px; page-break-after: avoid; }
+    h3 { font-size: 11.5pt; color: #333; margin: 16px 0 8px; page-break-after: avoid; }
+    .meta { color: #666; font-size: 9.5pt; margin-bottom: 24px; }
+    .meta span { display: inline-block; margin-right: 18px; }
+    ul { margin: 6px 0 12px; padding-left: 20px; }
+    li { margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 10pt; }
+    th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; vertical-align: top; }
+    th { background: #eef2ff; color: #1a2980; }
+    .tag { display: inline-block; background: #e8f8f8; color: #0d7377; border: 1px solid #26d0ce; border-radius: 4px; padding: 1px 7px; font-size: 8.5pt; margin-right: 4px; }
+    .section { page-break-inside: avoid; }
+    .cover { text-align: center; padding: 60px 0 40px; page-break-after: always; }
+    .cover h1 { border: none; font-size: 28pt; }
+    .cover p { color: #555; font-size: 12pt; }
+    .toc { page-break-after: always; }
+    .toc a { color: #1a2980; text-decoration: none; }
+    .toc li { margin-bottom: 6px; }
+    .note { background: #f8f9fa; border-left: 4px solid #26d0ce; padding: 10px 14px; margin: 12px 0; font-size: 10pt; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none !important; }
+      a { color: inherit; text-decoration: none; }
+    }
+    .btn-print {
+      position: fixed; top: 16px; right: 16px; z-index: 99;
+      background: linear-gradient(135deg,#1a2980,#26d0ce);
+      color: #fff; border: none; padding: 12px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    }
+    .btn-print:hover { opacity: .9; }
+  </style>
+</head>
+<body>
+
+<button class="btn-print no-print" onclick="window.print()">⬇ Télécharger / Imprimer en PDF</button>
+
+<div class="cover">
+  <h1>CYNA</h1>
+  <p><strong>Inventaire complet des fonctionnalités</strong></p>
+  <p>Plateforme e-commerce SaaS de cybersécurité</p>
+  <p style="margin-top:40px;font-size:10pt;color:#888">Document généré le 12 juin 2026<br>Projets : cyna-api (API Laravel) + Cyna_front (site PHP)</p>
+</div>
+
+<div class="toc">
+  <h2>Table des matières</h2>
+  <ol>
+    <li><a href="#s1">Vue d'ensemble</a></li>
+    <li><a href="#s2">Site public (frontend)</a></li>
+    <li><a href="#s3">Espace client connecté</a></li>
+    <li><a href="#s4">Catalogue &amp; produits</a></li>
+    <li><a href="#s5">Panier &amp; commande</a></li>
+    <li><a href="#s6">Paiements &amp; abonnements (Stripe)</a></li>
+    <li><a href="#s7">Authentification &amp; comptes</a></li>
+    <li><a href="#s8">Multilingue &amp; accessibilité</a></li>
+    <li><a href="#s9">Chatbot</a></li>
+    <li><a href="#s10">Administration</a></li>
+    <li><a href="#s11">API REST (backend)</a></li>
+    <li><a href="#s12">Base de données &amp; infrastructure</a></li>
+    <li><a href="#s13">Sécurité</a></li>
+    <li><a href="#s14">Outils &amp; commandes</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Vue d'ensemble</h2>
+<div class="section">
+  <p>CYNA est une plateforme de vente de services SaaS de cybersécurité (SOC, EDR, XDR, etc.) composée de deux applications :</p>
+  <table>
+    <tr><th>Composant</th><th>Technologie</th><th>Rôle</th></tr>
+    <tr><td><strong>cyna-api</strong></td><td>Laravel 13, PHP 8.4, Sanctum, Cashier</td><td>API REST, logique métier, BDD PostgreSQL, paiements Stripe</td></tr>
+    <tr><td><strong>Cyna_front</strong></td><td>PHP 7.4+, Bootstrap 5, Stripe.js</td><td>Site vitrine, boutique, espace client, back-office admin</td></tr>
+  </table>
+  <p>Le frontend communique avec l'API via HTTP/JSON (client cURL). Aucun accès direct à la base de données depuis le site public.</p>
+</div>
+
+<h2 id="s2">2. Site public (frontend)</h2>
+<div class="section">
+  <h3>Pages disponibles</h3>
+  <ul>
+    <li><strong>Accueil</strong> — carrousel dynamique, texte éditorial, catégories, produits mis en avant</li>
+    <li><strong>Catalogue</strong> — liste de tous les services, filtre par catégorie</li>
+    <li><strong>Fiche produit</strong> — détails, prix mensuel/annuel, disponibilité, produits similaires</li>
+    <li><strong>Recherche avancée</strong> — mot-clé, catégorie, fourchette de prix, disponibilité, tri (pertinence, prix, date)</li>
+    <li><strong>Contact</strong> — formulaire de contact</li>
+    <li><strong>À propos</strong>, <strong>CGU</strong>, <strong>Mentions légales</strong></li>
+    <li><strong>Connexion</strong> / <strong>Inscription</strong> / <strong>Mot de passe oublié</strong> / <strong>Réinitialisation</strong></li>
+    <li><strong>Confirmation e-mail</strong> — validation du compte utilisateur</li>
+  </ul>
+  <h3>Navigation</h3>
+  <ul>
+    <li>Barre de navigation avec lien Catalogue, panier, compte, connexion/déconnexion</li>
+    <li>Sélecteur de langue (menu déroulant FR / EN / AR / HE)</li>
+    <li>Barre de recherche depuis l'accueil</li>
+    <li>Accès admin (badge ⚙ Admin) visible pour les comptes administrateurs</li>
+  </ul>
+</div>
+
+<h2 id="s3">3. Espace client connecté</h2>
+<div class="section">
+  <ul>
+    <li><strong>Mon compte</strong> — consultation et modification du profil (prénom, nom, e-mail)</li>
+    <li><strong>Mes commandes</strong> — historique des commandes passées</li>
+    <li><strong>Mes abonnements</strong> — liste des abonnements actifs, annulation possible</li>
+    <li><strong>Adresses</strong> — gestion des adresses de facturation/livraison (CRUD)</li>
+    <li><strong>Moyens de paiement</strong> — cartes enregistrées via Stripe, définition de la carte par défaut, suppression</li>
+    <li><strong>Déconnexion</strong> — invalidation du token API et destruction de la session</li>
+  </ul>
+  <div class="note"><strong>Session utilisateur :</strong> connexion maintenue <strong>7 jours</strong> (cookie persistant). Session admin : déconnexion à la fermeture du navigateur.</div>
+</div>
+
+<h2 id="s4">4. Catalogue &amp; produits</h2>
+<div class="section">
+  <h3>Affichage</h3>
+  <ul>
+    <li>Liste et grille de produits avec image, catégorie, prix, badge de disponibilité</li>
+    <li>Produits mis en avant sur la page d'accueil (flag <em>is_featured</em>)</li>
+    <li>Filtrage par catégorie dans le catalogue</li>
+    <li>Produits similaires sur la fiche produit (même catégorie)</li>
+  </ul>
+  <h3>Disponibilité &amp; stock</h3>
+  <ul>
+    <li>Colonne <strong>stock</strong> en base de données pour chaque produit</li>
+    <li>Statuts affichés : <em>Disponible</em>, <em>Rupture de stock</em>, <em>Indisponible</em></li>
+    <li>Blocage de l'ajout au panier si produit indisponible ou stock = 0</li>
+    <li>Validation côté API au checkout (refus si stock insuffisant)</li>
+    <li>Décrémentation automatique du stock après commande payée</li>
+    <li>Gestion du stock dans l'admin (création / édition produit)</li>
+  </ul>
+  <h3>Tarification</h3>
+  <ul>
+    <li>Prix mensuel et prix annuel par produit</li>
+    <li>Choix du cycle (mensuel / annuel) à l'ajout au panier</li>
+  </ul>
+</div>
+
+<h2 id="s5">5. Panier &amp; commande</h2>
+<div class="section">
+  <ul>
+    <li><strong>Panier</strong> — stocké en session PHP, un produit par ligne avec cycle choisi</li>
+    <li>Ajout au panier depuis la fiche produit</li>
+    <li>Recalcul du total selon les prix et la disponibilité</li>
+    <li><strong>Codes promo</strong> — validation AJAX avant checkout (montant minimum, expiration, utilisations max)</li>
+    <li><strong>Checkout</strong> — nom et adresse de facturation, paiement Stripe (Stripe.js Elements)</li>
+    <li><strong>Confirmation</strong> — page de confirmation avec numéro de commande</li>
+    <li><strong>Paiement refusé</strong> — page d'erreur avec message explicite</li>
+  </ul>
+</div>
+
+<h2 id="s6">6. Paiements &amp; abonnements (Stripe)</h2>
+<div class="section">
+  <ul>
+    <li>Intégration <strong>Stripe</strong> via Laravel Cashier</li>
+    <li>Modèle par <strong>abonnement récurrent</strong> (mensuel ou annuel) par produit</li>
+    <li>Synchronisation produits/prix Stripe : commande Artisan <code>stripe:sync-products</code></li>
+    <li>Champs en BDD : <em>stripe_product_id</em>, <em>stripe_price_id_monthly</em>, <em>stripe_price_id_yearly</em></li>
+    <li>Checkout API : création de session Stripe Checkout ou paiement direct avec PaymentMethod</li>
+    <li>Webhooks Stripe côté API Laravel (<code>/stripe/webhook</code>) pour finaliser les commandes</li>
+    <li>Gestion des abonnements : statut actif, date de prochaine facturation, annulation</li>
+    <li>Enregistrement des 4 derniers chiffres de carte sur la commande</li>
+    <li>Configuration billing publique (<code>/api/billing/config</code>) — clé publique Stripe pour le front</li>
+  </ul>
+</div>
+
+<h2 id="s7">7. Authentification &amp; comptes</h2>
+<div class="section">
+  <h3>API (Laravel Sanctum — tokens Bearer)</h3>
+  <ul>
+    <li>Inscription avec confirmation e-mail obligatoire</li>
+    <li>Connexion / déconnexion (révocation du token)</li>
+    <li>Mot de passe oublié et réinitialisation par e-mail</li>
+    <li>Renvoi de l'e-mail de vérification</li>
+    <li>Comptes désactivables (<em>est_actif</em>)</li>
+    <li>Rôles : utilisateur standard et administrateur (<em>is_admin</em>)</li>
+  </ul>
+  <h3>Frontend</h3>
+  <ul>
+    <li>Token API stocké en session PHP (<code>api_token</code>)</li>
+    <li>Envoi automatique du header <code>Authorization: Bearer</code> sur chaque requête authentifiée</li>
+    <li>Protection CSRF sur les formulaires POST du frontend</li>
+    <li>Fallback SSL automatique si certificat cURL invalide en local (WAMP)</li>
+  </ul>
+</div>
+
+<h2 id="s8">8. Multilingue &amp; accessibilité</h2>
+<div class="section">
+  <ul>
+    <li><strong>4 langues</strong> : Français, English, العربية (AR), עברית (HE)</li>
+    <li>Support RTL pour l'arabe et l'hébreu (<code>dir="rtl"</code>)</li>
+    <li>Traductions centralisées dans <code>includes/lang.php</code></li>
+    <li>Choix de langue persisté en session, sélecteur dans la barre de navigation</li>
+    <li>Libellés traduits : navigation, catalogue, produit, panier, auth, footer</li>
+  </ul>
+</div>
+
+<h2 id="s9">9. Chatbot</h2>
+<div class="section">
+  <ul>
+    <li>Assistant virtuel accessible depuis le site (utilisateurs connectés)</li>
+    <li>Envoi de messages via API <code>POST /api/chat</code></li>
+    <li>Historique de conversation par session (<code>GET /api/chat/history</code>)</li>
+    <li>Journalisation en base (<em>chat_logs</em>) : message utilisateur, réponse bot, session_id, user_id</li>
+    <li><strong>Admin — Conversations Chatbot</strong> : consultation des logs, filtres par date et recherche textuelle, regroupement par session</li>
+  </ul>
+</div>
+
+<h2 id="s10">10. Administration (back-office)</h2>
+<div class="section">
+  <p>Interface admin PHP (<code>/admin/</code>) connectée à l'API via routes <code>/api/admin/*</code>. Accès réservé aux comptes <em>is_admin</em>.</p>
+  <table>
+    <tr><th>Module</th><th>Fonctionnalités</th></tr>
+    <tr><td><strong>Dashboard</strong></td><td>Statistiques : commandes, produits, catégories, utilisateurs, chiffre d'affaires, slides actifs</td></tr>
+    <tr><td><strong>Catégories</strong></td><td>CRUD — nom, image, ordre d'affichage, activation</td></tr>
+    <tr><td><strong>Produits</strong></td><td>CRUD — nom, catégorie, prix mensuel/annuel, image, stock, disponibilité, mise en avant, ordre ; filtres et pagination ; statut (disponible / rupture / indisponible)</td></tr>
+    <tr><td><strong>Commandes</strong></td><td>Liste, détail (client, articles, montant, statut), mise à jour du statut</td></tr>
+    <tr><td><strong>Utilisateurs</strong></td><td>Liste, activation/désactivation, suppression, statistiques commandes et dépenses</td></tr>
+    <tr><td><strong>Codes promo</strong></td><td>CRUD — code, type (% ou fixe), valeur, montant minimum, max utilisations, expiration, activation</td></tr>
+    <tr><td><strong>Carrousel (Slides)</strong></td><td>Gestion des slides homepage : titre, sous-titre, image, lien, ordre, activation</td></tr>
+    <tr><td><strong>Texte accueil</strong></td><td>Édition du contenu textuel de la page d'accueil (JSON multilingue possible)</td></tr>
+    <tr><td><strong>Chat logs</strong></td><td>Historique des conversations chatbot avec statistiques et filtres</td></tr>
+  </table>
+</div>
+
+<h2 id="s11">11. API REST (backend Laravel)</h2>
+<div class="section">
+  <h3>Routes publiques</h3>
+  <table>
+    <tr><th>Endpoint</th><th>Description</th></tr>
+    <tr><td>POST /api/auth/register</td><td>Inscription</td></tr>
+    <tr><td>POST /api/auth/login</td><td>Connexion → token Sanctum</td></tr>
+    <tr><td>POST /api/auth/forgot-password</td><td>Demande reset mot de passe</td></tr>
+    <tr><td>POST /api/auth/reset-password</td><td>Réinitialisation mot de passe</td></tr>
+    <tr><td>POST /api/auth/verify-email</td><td>Vérification e-mail</td></tr>
+    <tr><td>GET /api/products</td><td>Liste produits (filtres : catégorie, featured)</td></tr>
+    <tr><td>GET /api/products/{id}</td><td>Détail produit</td></tr>
+    <tr><td>GET /api/categories</td><td>Liste catégories actives</td></tr>
+    <tr><td>GET /api/homepage</td><td>Slides + contenu accueil</td></tr>
+    <tr><td>GET /api/billing/config</td><td>Clé publique Stripe</td></tr>
+  </table>
+  <h3>Routes authentifiées (Bearer token)</h3>
+  <table>
+    <tr><th>Endpoint</th><th>Description</th></tr>
+    <tr><td>POST /api/auth/logout</td><td>Déconnexion</td></tr>
+    <tr><td>GET/PUT /api/profile</td><td>Profil utilisateur</td></tr>
+    <tr><td>GET/POST /api/orders</td><td>Commandes</td></tr>
+    <tr><td>GET /api/subscriptions</td><td>Abonnements</td></tr>
+    <tr><td>POST /api/subscriptions/{id}/cancel</td><td>Annulation abonnement</td></tr>
+    <tr><td>CRUD /api/addresses</td><td>Adresses</td></tr>
+    <tr><td>CRUD /api/payment-methods</td><td>Moyens de paiement Stripe</td></tr>
+    <tr><td>POST /api/billing/checkout</td><td>Checkout Stripe</td></tr>
+    <tr><td>POST /api/promo-codes/validate</td><td>Validation code promo</td></tr>
+    <tr><td>POST /api/chat</td><td>Message chatbot</td></tr>
+    <tr><td>GET /api/chat/history</td><td>Historique chat</td></tr>
+  </table>
+  <h3>Routes admin (/api/admin/*)</h3>
+  <p>CRUD complet : utilisateurs, produits, catégories, commandes, codes promo ; gestion homepage (slides, contenu) ; consultation chat logs.</p>
+</div>
+
+<h2 id="s12">12. Base de données &amp; infrastructure</h2>
+<div class="section">
+  <h3>Tables principales (PostgreSQL / Supabase)</h3>
+  <ul>
+    <li><em>utilisateurs</em> — comptes, rôles, confirmation e-mail</li>
+    <li><em>categories</em>, <em>products</em> (avec stock, IDs Stripe)</li>
+    <li><em>orders</em>, <em>order_items</em></li>
+    <li><em>product_subscriptions</em> — abonnements liés aux commandes</li>
+    <li><em>promo_codes</em></li>
+    <li><em>homepage_slides</em>, <em>homepage_content</em></li>
+    <li><em>user_addresses</em>, <em>user_payment_methods</em></li>
+    <li><em>chat_logs</em></li>
+    <li><em>personal_access_tokens</em> — tokens Sanctum</li>
+  </ul>
+  <h3>Déploiement</h3>
+  <ul>
+    <li><strong>API</strong> — Docker sur Render (PHP 8.4, extensions pdo_pgsql, bcmath)</li>
+    <li><strong>Base</strong> — Supabase PostgreSQL (pooler IPv4)</li>
+    <li><strong>Frontend</strong> — WAMP local (développement) / serveur web PHP (production)</li>
+    <li><strong>Paiements</strong> — Stripe (mode test ou live selon .env)</li>
+    <li>Queue worker Laravel pour e-mails et tâches asynchrones</li>
+  </ul>
+</div>
+
+<h2 id="s13">13. Sécurité</h2>
+<div class="section">
+  <ul>
+    <li>Authentification API par token Sanctum (Bearer), pas de cookie Sanctum cross-domain</li>
+    <li>Middleware <em>active</em> — blocage des comptes désactivés</li>
+    <li>Middleware <em>admin</em> — routes admin protégées</li>
+    <li>Protection CSRF sur formulaires frontend</li>
+    <li>Rate limiting sur les routes auth (60 req/min)</li>
+    <li>Mots de passe hashés (bcrypt)</li>
+    <li>Cookies session : HttpOnly, SameSite=Lax</li>
+    <li>Validation des entrées côté API (Form Requests Laravel)</li>
+    <li>Vérification e-mail obligatoire à l'inscription</li>
+  </ul>
+</div>
+
+<h2 id="s14">14. Outils &amp; commandes</h2>
+<div class="section">
+  <table>
+    <tr><th>Commande / outil</th><th>Usage</th></tr>
+    <tr><td><code>php artisan stripe:sync-products</code></td><td>Crée les produits et prix récurrents Stripe, enregistre les IDs en BDD</td></tr>
+    <tr><td><code>php artisan migrate</code></td><td>Applique les migrations (dont colonne stock)</td></tr>
+    <tr><td>Postman</td><td>Tests API avec Bearer token</td></tr>
+    <tr><td>ApiClient PHP</td><td>Client HTTP centralisé côté frontend (cURL + fallback SSL)</td></tr>
+  </table>
+</div>
+
+<div class="note" style="margin-top:32px">
+  <strong>Export PDF :</strong> ouvrez ce fichier dans un navigateur et utilisez <em>Ctrl+P → Enregistrer au format PDF</em>, ou cliquez sur le bouton en haut à droite.
+</div>
+
+<p style="margin-top:40px;font-size:9pt;color:#999;text-align:center">© 2026 CYNA-IT — Document fonctionnel — Tous droits réservés</p>
+
+</body>
+</html>
