@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReplyContactRequest;
+use App\Http\Requests\UpdateContactStatusRequest;
+use App\Http\Resources\ContactMessageResource;
 use App\Mail\ContactReplyMail;
 use App\Models\ContactMessage;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +17,7 @@ class AdminContactController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = ContactMessage::with(['user', 'repliedBy'])
+        $query = ContactMessage::with(['user', 'replier'])
             ->orderByDesc('created_at');
 
         if ($request->filled('email')) {
@@ -36,15 +38,30 @@ class AdminContactController extends Controller
             $query->whereDate('created_at', $request->string('date'));
         }
 
-        if ($request->string('status') === 'pending') {
-            $query->whereNull('admin_reply');
-        } elseif ($request->string('status') === 'replied') {
-            $query->whereNotNull('admin_reply');
+        if ($request->filled('status') && in_array($request->string('status'), ['pending', 'replied', 'closed'], true)) {
+            $query->where('status', $request->string('status'));
         }
 
         $messages = $query->paginate($request->integer('per_page', 50));
+        $messages->getCollection()->transform(
+            fn (ContactMessage $message) => (new ContactMessageResource($message))->resolve()
+        );
 
         return response()->json(['data' => $messages]);
+    }
+
+    public function updateStatus(UpdateContactStatusRequest $request, int $id): JsonResponse
+    {
+        $message = ContactMessage::findOrFail($id);
+        $status = $request->validated()['status'];
+
+        $message->update(['status' => $status]);
+        $message->load(['user', 'replier']);
+
+        return response()->json([
+            'data' => new ContactMessageResource($message),
+            'message' => 'Statut mis à jour.',
+        ]);
     }
 
     public function reply(ReplyContactRequest $request, int $id): JsonResponse
@@ -56,9 +73,10 @@ class AdminContactController extends Controller
             'admin_reply' => $reply,
             'replied_by' => auth()->id(),
             'replied_at' => now(),
+            'status' => ContactMessage::STATUS_REPLIED,
         ]);
 
-        $message->load(['user', 'repliedBy']);
+        $message->load(['user', 'replier']);
 
         $mailSent = false;
         try {
@@ -73,16 +91,10 @@ class AdminContactController extends Controller
         }
 
         return response()->json([
-            'data' => [
-                'id' => $message->id,
-                'email' => $message->email,
-                'sujet' => $message->sujet,
-                'message' => $message->message,
-                'admin_reply' => $message->admin_reply,
-                'replied_at' => $message->replied_at,
-                'replied_by' => $message->repliedBy,
-                'mail_sent' => $mailSent,
-            ],
+            'data' => array_merge(
+                (new ContactMessageResource($message))->resolve(),
+                ['mail_sent' => $mailSent],
+            ),
             'message' => $mailSent
                 ? 'Réponse enregistrée et envoyée par email.'
                 : 'Réponse enregistrée, mais l\'envoi email a échoué.',

@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContactMessage extends Model
 {
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_REPLIED = 'replied';
+
+    public const STATUS_CLOSED = 'closed';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -14,6 +20,7 @@ class ContactMessage extends Model
         'email',
         'sujet',
         'message',
+        'status',
         'admin_reply',
         'replied_by',
         'replied_at',
@@ -33,13 +40,8 @@ class ContactMessage extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function repliedBy(): BelongsTo
+    public function replier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'replied_by');
-    }
-
-    public function isReplied(): bool
-    {
-        return $this->admin_reply !== null && $this->admin_reply !== '';
     }
 }

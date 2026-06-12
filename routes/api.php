@@ -37,7 +37,7 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/homepage', [HomepageController::class, 'index']);
 Route::get('/billing/config', [BillingController::class, 'config']);
-Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:10,1');
+Route::post('/contact', [ContactController::class, 'store'])->middleware(['throttle:10,1', 'optional.sanctum']);
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -104,5 +104,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(f
 
     Route::get('/chat-logs', [AdminChatController::class, 'index']);
     Route::get('/contact-messages', [AdminContactController::class, 'index']);
+    Route::patch('/contact-messages/{id}/status', [AdminContactController::class, 'updateStatus']);
     Route::post('/contact-messages/{id}/reply', [AdminContactController::class, 'reply']);
 });
