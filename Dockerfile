@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql pgsql opcache \
+    && docker-php-ext-install pdo pdo_pgsql pgsql opcache bcmath \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
