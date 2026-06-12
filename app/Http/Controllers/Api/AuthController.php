@@ -109,11 +109,14 @@ class AuthController extends Controller
     public function verifyEmail(Request $request): JsonResponse
     {
         $request->validate([
-            'id' => ['required', 'integer'],
+            'id' => ['required_without:email', 'integer'],
+            'email' => ['required_without:id', 'email'],
             'token' => ['required', 'string'],
         ]);
 
-        $user = User::find($request->id);
+        $user = $request->filled('id')
+            ? User::find($request->integer('id'))
+            : User::where('email', $request->email)->first();
 
         if (! $user || ! hash_equals((string) $user->token_confirmation, (string) $request->token)) {
             return response()->json(['message' => 'Lien de vérification invalide.'], 422);
@@ -126,6 +129,21 @@ class AuthController extends Controller
         $user->markEmailAsVerified();
 
         return response()->json(['message' => 'Email vérifié avec succès.']);
+    }
+
+    public function resendVerificationByEmail(Request $request): JsonResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user && ! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json([
+            'message' => 'Si cette adresse est associée à un compte non confirmé, un email vient d\'être envoyé.',
+        ]);
     }
 
     public function resendVerification(Request $request): JsonResponse

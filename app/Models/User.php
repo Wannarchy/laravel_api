@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use Billable, HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'utilisateurs';
 
@@ -98,19 +99,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class, 'user_id');
     }
 
-    public function subscriptions(): HasMany
+    public function productSubscriptions(): HasMany
     {
-        return $this->hasMany(Subscription::class, 'user_id');
+        return $this->hasMany(ProductSubscription::class, 'user_id');
     }
 
     public function addresses(): HasMany
     {
         return $this->hasMany(UserAddress::class, 'user_id');
-    }
-
-    public function paymentMethods(): HasMany
-    {
-        return $this->hasMany(UserPaymentMethod::class, 'user_id');
     }
 
     public function chatLogs(): HasMany

@@ -17,6 +17,7 @@ class SubscriptionResource extends JsonResource
             'cycle' => $this->cycle,
             'price' => $this->price,
             'status' => $this->status,
+            'stripe_subscription_id' => $this->stripe_subscription_id,
             'start_date' => $this->start_date?->format('Y-m-d'),
             'next_billing' => $this->next_billing?->format('Y-m-d'),
             'cancelled_at' => $this->cancelled_at,

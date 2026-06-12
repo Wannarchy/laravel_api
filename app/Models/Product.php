@@ -16,6 +16,9 @@ class Product extends Model
         'image_path',
         'price_monthly',
         'price_yearly',
+        'stripe_product_id',
+        'stripe_price_id_monthly',
+        'stripe_price_id_yearly',
         'is_available',
         'is_featured',
         'featured_order',
@@ -41,8 +44,8 @@ class Product extends Model
         return $this->hasMany(OrderItem::class, 'product_id');
     }
 
-    public function subscriptions(): HasMany
+    public function productSubscriptions(): HasMany
     {
-        return $this->hasMany(Subscription::class, 'product_id');
+        return $this->hasMany(ProductSubscription::class, 'product_id');
     }
 }

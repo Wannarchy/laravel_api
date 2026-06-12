@@ -54,6 +54,14 @@ services:
         sync: false
       - key: MAIL_FROM_NAME
         value: Cyna API
+      - key: STRIPE_KEY
+        sync: false
+      - key: STRIPE_SECRET
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: CASHIER_CURRENCY
+        value: eur
 
   - type: worker
     name: cyna-api-queue
@@ -93,3 +101,11 @@ services:
         value: require
       - key: QUEUE_CONNECTION
         value: database
+      - key: STRIPE_KEY
+        sync: false
+      - key: STRIPE_SECRET
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: CASHIER_CURRENCY
+        value: eur

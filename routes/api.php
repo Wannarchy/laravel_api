@@ -9,12 +9,14 @@ use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Api\Admin\AdminPromoCodeController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\HomepageController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PromoCodeController;
 use App\Http\Controllers\Api\SubscriptionController;
 use Illuminate\Support\Facades\Route;
@@ -25,16 +27,25 @@ Route::prefix('auth')->middleware('throttle:60,1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationByEmail']);
 });
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/homepage', [HomepageController::class, 'index']);
+Route::get('/billing/config', [BillingController::class, 'config']);
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/resend-verification', [AuthController::class, 'resendVerification']);
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+
+    Route::get('/billing/setup-intent', [BillingController::class, 'setupIntent']);
+    Route::post('/billing/checkout', [BillingController::class, 'checkout']);
+    Route::post('/billing/checkout/success', [BillingController::class, 'checkoutSuccess']);
 
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
@@ -50,6 +61,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
     Route::post('/payment-methods', [PaymentMethodController::class, 'store']);
+    Route::post('/payment-methods/{id}/default', [PaymentMethodController::class, 'setDefault']);
     Route::delete('/payment-methods/{id}', [PaymentMethodController::class, 'destroy']);
 
     Route::post('/promo-codes/validate', [PromoCodeController::class, 'validate']);
@@ -84,6 +96,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(f
     Route::delete('/promo-codes/{id}', [AdminPromoCodeController::class, 'destroy']);
 
     Route::put('/homepage/slides', [AdminHomepageController::class, 'updateSlides']);
+    Route::delete('/homepage/slides/{id}', [AdminHomepageController::class, 'destroySlide']);
     Route::put('/homepage/content', [AdminHomepageController::class, 'updateContent']);
 
     Route::get('/chat-logs', [AdminChatController::class, 'index']);

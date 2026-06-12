@@ -16,6 +16,7 @@ class Order extends Model
         'billing_name',
         'billing_address',
         'stripe_payment_intent',
+        'stripe_checkout_session_id',
         'card_last4',
         'status',
     ];
@@ -37,8 +38,8 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
-    public function subscriptions(): HasMany
+    public function productSubscriptions(): HasMany
     {
-        return $this->hasMany(Subscription::class, 'order_id');
+        return $this->hasMany(ProductSubscription::class, 'order_id');
     }
 }

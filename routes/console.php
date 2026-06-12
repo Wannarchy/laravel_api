@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\PromoCode;
-use App\Models\Subscription;
+use App\Models\ProductSubscription;
 use App\Models\User;
 use App\Notifications\RenewalReminderNotification;
 use Illuminate\Foundation\Inspiring;
@@ -13,12 +13,12 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::call(function () {
-    Subscription::query()
+    ProductSubscription::query()
         ->with(['user', 'product'])
         ->where('status', 'active')
         ->whereDate('next_billing', now()->addDay()->toDateString())
         ->where('renewal_notified', false)
-        ->each(function (Subscription $subscription) {
+        ->each(function (ProductSubscription $subscription) {
             if ($subscription->user) {
                 $subscription->user->notify(new RenewalReminderNotification($subscription));
             }

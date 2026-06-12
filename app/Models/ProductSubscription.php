@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Subscription extends Model
+class ProductSubscription extends Model
 {
     public $timestamps = false;
+
+    protected $table = 'product_subscriptions';
 
     protected $fillable = [
         'user_id',
@@ -16,6 +18,7 @@ class Subscription extends Model
         'cycle',
         'price',
         'status',
+        'stripe_subscription_id',
         'start_date',
         'next_billing',
         'cancelled_at',

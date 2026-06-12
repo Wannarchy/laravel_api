@@ -54,4 +54,17 @@ class AdminHomepageController extends Controller
 
         return response()->json(['data' => $content]);
     }
+
+    public function destroySlide(int $id): JsonResponse
+    {
+        $slide = HomepageSlide::find($id);
+
+        if (! $slide) {
+            return response()->json(['message' => 'Slide introuvable.'], 404);
+        }
+
+        $slide->delete();
+
+        return response()->json(['message' => 'Slide supprimée.']);
+    }
 }

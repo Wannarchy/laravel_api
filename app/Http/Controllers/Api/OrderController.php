@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Product;
-use App\Models\PromoCode;
-use App\Models\Subscription;
+use App\Services\OrderFulfillmentService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private OrderFulfillmentService $orderFulfillment,
+    ) {}
+
     public function index(): JsonResponse
     {
         $orders = Order::with(['items.product'])
@@ -43,105 +45,57 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        $order = DB::transaction(function () use ($request) {
-            $subtotal = 0;
-            $lineItems = [];
+        $user = auth()->user();
 
-            foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $price = $item['cycle'] === 'yearly'
-                    ? (float) $product->price_yearly
-                    : (float) $product->price_monthly;
+        try {
+            $lineItems = $this->orderFulfillment->calculateLineItems($request->items);
+        } catch (InvalidArgumentException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
 
-                $subtotal += $price;
-                $lineItems[] = [
-                    'product' => $product,
-                    'cycle' => $item['cycle'],
-                    'price' => $price,
-                ];
-            }
+        if (! $request->filled('payment_method')) {
+            return response()->json([
+                'message' => 'Un moyen de paiement Stripe est requis. Utilisez payment_method ou POST /api/billing/checkout.',
+            ], 422);
+        }
 
-            $total = $subtotal;
+        $user->createOrGetStripeCustomer([
+            'name' => $request->billing_name,
+            'email' => $user->email,
+        ]);
 
-            if ($request->filled('promo_code')) {
-                $promo = PromoCode::where('code', $request->promo_code)->first();
+        $user->updateDefaultPaymentMethod($request->payment_method);
 
-                if ($promo && $this->isPromoValid($promo, $subtotal)) {
-                    $total = $this->applyDiscount($promo, $subtotal);
-                    $promo->increment('uses_count');
-                }
-            }
+        $stripeSubscriptionIds = [];
 
-            $order = Order::create([
-                'user_id' => auth()->id(),
-                'total' => $total,
-                'billing_name' => $request->billing_name,
-                'billing_address' => $request->billing_address,
-                'stripe_payment_intent' => $request->stripe_payment_intent,
-                'card_last4' => $request->card_last4,
-                'status' => $request->stripe_payment_intent ? 'paid' : 'pending',
-            ]);
-
+        try {
             foreach ($lineItems as $line) {
-                $order->items()->create([
-                    'product_id' => $line['product']->id,
-                    'cycle' => $line['cycle'],
-                    'price' => $line['price'],
-                ]);
+                $priceId = $this->orderFulfillment->stripePriceId($line['product'], $line['cycle']);
+                $subscription = $user->newSubscription(
+                    'product-'.$line['product']->id,
+                    $priceId
+                )->create($request->payment_method);
 
-                if ($order->status === 'paid') {
-                    $nextBilling = $line['cycle'] === 'yearly'
-                        ? now()->addYear()
-                        : now()->addMonth();
-
-                    Subscription::create([
-                        'user_id' => auth()->id(),
-                        'order_id' => $order->id,
-                        'product_id' => $line['product']->id,
-                        'cycle' => $line['cycle'],
-                        'price' => $line['price'],
-                        'status' => 'active',
-                        'start_date' => now()->toDateString(),
-                        'next_billing' => $nextBilling->toDateString(),
-                    ]);
-                }
+                $stripeSubscriptionIds[] = $subscription->stripe_id;
             }
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => 'Paiement refusé : '.$exception->getMessage(),
+            ], 422);
+        }
 
-            return $order->load(['items.product']);
-        });
+        $order = $this->orderFulfillment->fulfill(
+            user: $user,
+            items: $request->items,
+            billingName: $request->billing_name,
+            billingAddress: $request->billing_address,
+            promoCode: $request->promo_code,
+            cardLast4: $user->pm_last_four,
+            stripeSubscriptionIds: $stripeSubscriptionIds,
+        );
 
         return response()->json([
             'data' => new OrderResource($order),
         ], 201);
-    }
-
-    private function isPromoValid(PromoCode $promo, float $amount): bool
-    {
-        if (! $promo->is_active) {
-            return false;
-        }
-
-        if ($promo->expires_at && $promo->expires_at->isPast()) {
-            return false;
-        }
-
-        if ($promo->max_uses !== null && $promo->uses_count >= $promo->max_uses) {
-            return false;
-        }
-
-        if ($amount < (float) $promo->min_amount) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function applyDiscount(PromoCode $promo, float $amount): float
-    {
-        if ($promo->type === 'fixed') {
-            return max(0, $amount - (float) $promo->value);
-        }
-
-        return max(0, $amount - ($amount * ((float) $promo->value / 100)));
     }
 }

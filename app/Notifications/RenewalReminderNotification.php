@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Subscription;
+use App\Models\ProductSubscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -12,7 +12,7 @@ class RenewalReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Subscription $subscription) {}
+    public function __construct(public ProductSubscription $subscription) {}
 
     public function via(object $notifiable): array
     {

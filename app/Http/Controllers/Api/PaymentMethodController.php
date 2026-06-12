@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserPaymentMethod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,9 +10,22 @@ class PaymentMethodController extends Controller
 {
     public function index(): JsonResponse
     {
-        $methods = UserPaymentMethod::where('user_id', auth()->id())
-            ->orderByDesc('is_default')
-            ->get();
+        $user = auth()->user();
+
+        if (! $user->hasStripeId()) {
+            return response()->json(['data' => []]);
+        }
+
+        $methods = collect($user->paymentMethods())->map(function ($method) use ($user) {
+            return [
+                'id' => $method->id,
+                'card_brand' => $method->card->brand ?? null,
+                'card_last4' => $method->card->last4 ?? null,
+                'exp_month' => $method->card->exp_month ?? null,
+                'exp_year' => $method->card->exp_year ?? null,
+                'is_default' => $user->defaultPaymentMethod()?->id === $method->id,
+            ];
+        });
 
         return response()->json(['data' => $methods]);
     }
@@ -21,30 +33,42 @@ class PaymentMethodController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'card_holder' => ['required', 'string', 'max:120'],
-            'card_last4' => ['required', 'string', 'size:4'],
-            'card_brand' => ['nullable', 'string', 'max:20'],
-            'exp_month' => ['required', 'integer', 'min:1', 'max:12'],
-            'exp_year' => ['required', 'integer', 'min:'.date('Y')],
-            'is_default' => ['nullable', 'boolean'],
+            'payment_method' => ['required', 'string'],
         ]);
 
-        if ($request->boolean('is_default')) {
-            UserPaymentMethod::where('user_id', auth()->id())->update(['is_default' => false]);
-        }
+        $user = auth()->user();
 
-        $method = UserPaymentMethod::create([
-            ...$validated,
-            'user_id' => auth()->id(),
-            'card_brand' => $validated['card_brand'] ?? 'Visa',
+        $user->createOrGetStripeCustomer([
+            'name' => trim($user->prenom.' '.$user->nom),
+            'email' => $user->email,
         ]);
 
-        return response()->json(['data' => $method], 201);
+        $user->addPaymentMethod($validated['payment_method']);
+        $user->updateDefaultPaymentMethod($validated['payment_method']);
+
+        $method = $user->defaultPaymentMethod();
+
+        return response()->json([
+            'data' => [
+                'id' => $method->id,
+                'card_brand' => $method->card->brand ?? null,
+                'card_last4' => $method->card->last4 ?? null,
+                'exp_month' => $method->card->exp_month ?? null,
+                'exp_year' => $method->card->exp_year ?? null,
+                'is_default' => true,
+            ],
+        ], 201);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
-        $method = UserPaymentMethod::where('user_id', auth()->id())->find($id);
+        $user = auth()->user();
+
+        if (! $user->hasStripeId()) {
+            return response()->json(['message' => 'Moyen de paiement introuvable.'], 404);
+        }
+
+        $method = collect($user->paymentMethods())->firstWhere('id', $id);
 
         if (! $method) {
             return response()->json(['message' => 'Moyen de paiement introuvable.'], 404);
@@ -53,5 +77,24 @@ class PaymentMethodController extends Controller
         $method->delete();
 
         return response()->json(['message' => 'Moyen de paiement supprimé.']);
+    }
+
+    public function setDefault(string $id): JsonResponse
+    {
+        $user = auth()->user();
+
+        if (! $user->hasStripeId()) {
+            return response()->json(['message' => 'Moyen de paiement introuvable.'], 404);
+        }
+
+        $method = collect($user->paymentMethods())->firstWhere('id', $id);
+
+        if (! $method) {
+            return response()->json(['message' => 'Moyen de paiement introuvable.'], 404);
+        }
+
+        $user->updateDefaultPaymentMethod($id);
+
+        return response()->json(['message' => 'Carte par défaut mise à jour.']);
     }
 }
