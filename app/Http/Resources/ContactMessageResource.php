@@ -32,6 +32,8 @@ class ContactMessageResource extends JsonResource
                 'nom' => $this->replier->nom,
                 'email' => $this->replier->email,
             ]),
+            'replies' => ContactMessageReplyResource::collection($this->whenLoaded('replies')),
+            'replies_count' => $this->whenCounted('replies'),
         ];
     }
 }

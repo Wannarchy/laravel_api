@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ContactMessage extends Model
 {
@@ -43,5 +44,10 @@ class ContactMessage extends Model
     public function replier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'replied_by');
+    }
+
+    public function replies(): HasMany
+    {
+        return $this->hasMany(ContactMessageReply::class, 'contact_message_id')->orderBy('created_at');
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateContactStatusRequest;
 use App\Http\Resources\ContactMessageResource;
 use App\Mail\ContactReplyMail;
 use App\Models\ContactMessage;
+use App\Models\ContactMessageReply;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,8 @@ class AdminContactController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = ContactMessage::with(['user', 'replier'])
+        $query = ContactMessage::with(['user', 'replier', 'replies'])
+            ->withCount('replies')
             ->orderByDesc('created_at');
 
         if ($request->filled('email')) {
@@ -30,7 +32,8 @@ class AdminContactController extends Controller
                 $builder->where('email', 'like', $term)
                     ->orWhere('sujet', 'like', $term)
                     ->orWhere('message', 'like', $term)
-                    ->orWhere('admin_reply', 'like', $term);
+                    ->orWhere('admin_reply', 'like', $term)
+                    ->orWhereHas('replies', fn ($builder) => $builder->where('body', 'like', $term));
             });
         }
 
@@ -56,7 +59,8 @@ class AdminContactController extends Controller
         $status = $request->validated()['status'];
 
         $message->update(['status' => $status]);
-        $message->load(['user', 'replier']);
+        $message->load(['user', 'replier', 'replies']);
+        $message->loadCount('replies');
 
         return response()->json([
             'data' => new ContactMessageResource($message),
@@ -69,15 +73,6 @@ class AdminContactController extends Controller
         $message = ContactMessage::findOrFail($id);
         $reply = $request->validated()['reply'];
 
-        $message->update([
-            'admin_reply' => $reply,
-            'replied_by' => auth()->id(),
-            'replied_at' => now(),
-            'status' => ContactMessage::STATUS_REPLIED,
-        ]);
-
-        $message->load(['user', 'replier']);
-
         $mailSent = false;
         try {
             Mail::to($message->email)->send(new ContactReplyMail($message, $reply));
@@ -89,6 +84,24 @@ class AdminContactController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+
+        ContactMessageReply::create([
+            'contact_message_id' => $message->id,
+            'admin_id' => auth()->id(),
+            'body' => $reply,
+            'mail_sent' => $mailSent,
+            'created_at' => now(),
+        ]);
+
+        $message->update([
+            'admin_reply' => $reply,
+            'replied_by' => auth()->id(),
+            'replied_at' => now(),
+            'status' => ContactMessage::STATUS_REPLIED,
+        ]);
+
+        $message->load(['user', 'replier', 'replies']);
+        $message->loadCount('replies');
 
         return response()->json([
             'data' => array_merge(
