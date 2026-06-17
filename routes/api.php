@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminUploadController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 use App\Http\Controllers\Api\Admin\AdminChatController;
 use App\Http\Controllers\Api\Admin\AdminHomepageController;
@@ -106,4 +107,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(f
     Route::get('/contact-messages', [AdminContactController::class, 'index']);
     Route::patch('/contact-messages/{id}/status', [AdminContactController::class, 'updateStatus']);
     Route::post('/contact-messages/{id}/reply', [AdminContactController::class, 'reply']);
+    Route::post('/uploads/image', [AdminUploadController::class, 'store']);
 });
