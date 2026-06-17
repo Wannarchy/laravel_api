@@ -12,7 +12,7 @@ class AdminCategoryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $categories = Category::orderBy('sort_order')->get();
+        $categories = Category::withCount('products')->orderBy('sort_order')->get();
 
         return response()->json([
             'data' => CategoryResource::collection($categories),
@@ -49,6 +49,14 @@ class AdminCategoryController extends Controller
 
         if (! $category) {
             return response()->json(['message' => 'Catégorie introuvable.'], 404);
+        }
+
+        $productsCount = $category->products()->count();
+
+        if ($productsCount > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer cette catégorie : {$productsCount} produit(s) y sont rattachés. Réassignez ou supprimez ces produits d'abord.",
+            ], 422);
         }
 
         $category->delete();

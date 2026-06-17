@@ -15,6 +15,10 @@ class CategoryResource extends JsonResource
             'image_path' => $this->image_path,
             'sort_order' => $this->sort_order,
             'is_active' => (bool) $this->is_active,
+            'products_count' => $this->when(
+                isset($this->products_count),
+                fn () => (int) $this->products_count
+            ),
         ];
     }
 }
