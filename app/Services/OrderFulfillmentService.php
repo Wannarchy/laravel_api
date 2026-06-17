@@ -43,7 +43,7 @@ class OrderFulfillmentService
         $total = $subtotal;
 
         if ($promoCode) {
-            $promo = PromoCode::where('code', $promoCode)->first();
+            $promo = PromoCode::where('code', strtoupper(trim($promoCode)))->first();
 
             if ($promo && $this->isPromoValid($promo, $subtotal)) {
                 $total = $this->applyDiscount($promo, $subtotal);
@@ -95,7 +95,7 @@ class OrderFulfillmentService
             $total = $this->calculateTotal($lineItems, $promoCode);
 
             if ($promoCode) {
-                $promo = PromoCode::where('code', $promoCode)->first();
+                $promo = PromoCode::where('code', strtoupper(trim($promoCode)))->first();
 
                 if ($promo && $this->isPromoValid($promo, $subtotal)) {
                     $promo->increment('uses_count');

@@ -12,7 +12,8 @@ class ValidPromoCode implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $promo = PromoCode::where('code', $value)->first();
+        $code = strtoupper(trim((string) $value));
+        $promo = PromoCode::where('code', $code)->first();
 
         if (! $promo) {
             $fail('Code promo invalide.');
@@ -20,7 +21,7 @@ class ValidPromoCode implements ValidationRule
             return;
         }
 
-        if ((int) $promo->is_active !== 1) {
+        if (! $promo->is_active) {
             $fail('Ce code promo n\'est plus actif.');
 
             return;

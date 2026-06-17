@@ -19,4 +19,13 @@ class ValidatePromoRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0'],
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('code')) {
+            $this->merge([
+                'code' => strtoupper(trim((string) $this->input('code'))),
+            ]);
+        }
+    }
 }

@@ -29,6 +29,8 @@ class AdminPromoCodeController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $validated['code'] = strtoupper(trim($validated['code']));
+
         $promo = PromoCode::create($validated);
 
         return response()->json(['data' => $promo], 201);
