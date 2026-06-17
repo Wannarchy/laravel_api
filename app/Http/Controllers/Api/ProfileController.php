@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Support\PasswordRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,7 +28,7 @@ class ProfileController extends Controller
             'nom' => ['sometimes', 'string', 'max:100'],
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('utilisateurs', 'email')->ignore($user->id)],
             'current_password' => ['required_with:password', 'string'],
-            'password' => ['sometimes', 'string', 'min:8', 'confirmed'],
+            'password' => PasswordRules::optional(),
         ]);
 
         if (isset($validated['password'])) {

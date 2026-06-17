@@ -78,6 +78,8 @@ class OrderFulfillmentService
         ?string $stripeCheckoutSessionId = null,
         ?string $cardLast4 = null,
         array $stripeSubscriptionIds = [],
+        ?string $shippingName = null,
+        ?string $shippingAddress = null,
     ): Order {
         return DB::transaction(function () use (
             $user,
@@ -89,16 +91,22 @@ class OrderFulfillmentService
             $stripeCheckoutSessionId,
             $cardLast4,
             $stripeSubscriptionIds,
+            $shippingName,
+            $shippingAddress,
         ) {
             $lineItems = $this->calculateLineItems($items);
-            $subtotal = $lineItems->sum('price');
+            $subtotal = round((float) $lineItems->sum('price'), 2);
             $total = $this->calculateTotal($lineItems, $promoCode);
+            $promoDiscount = round(max(0, $subtotal - $total), 2);
+            $taxAmount = round($total - ($total / 1.2), 2);
+            $appliedPromoCode = null;
 
             if ($promoCode) {
                 $promo = PromoCode::where('code', strtoupper(trim($promoCode)))->first();
 
                 if ($promo && $this->isPromoValid($promo, $subtotal)) {
                     $promo->increment('uses_count');
+                    $appliedPromoCode = strtoupper(trim($promoCode));
                 }
             }
 
@@ -107,11 +115,18 @@ class OrderFulfillmentService
             $order = Order::create([
                 'user_id' => $user->id,
                 'total' => $total,
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'promo_discount' => $promoDiscount,
+                'promo_code' => $appliedPromoCode,
                 'billing_name' => $billingName,
                 'billing_address' => $billingAddress,
+                'shipping_name' => $shippingName,
+                'shipping_address' => $shippingAddress,
                 'stripe_payment_intent' => $stripePaymentIntent,
                 'stripe_checkout_session_id' => $stripeCheckoutSessionId,
                 'card_last4' => $cardLast4 ?? $user->pm_last_four,
+                'payment_brand' => $user->pm_type,
                 'status' => $isPaid ? 'paid' : 'pending',
             ]);
 

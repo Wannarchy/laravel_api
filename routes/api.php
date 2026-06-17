@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\AdminContactController;
 use App\Http\Controllers\Api\Admin\AdminChatController;
 use App\Http\Controllers\Api\Admin\AdminHomepageController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
+use App\Http\Controllers\Api\Admin\AdminProductImageController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Api\Admin\AdminPromoCodeController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
@@ -84,6 +85,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(f
     Route::post('/products', [AdminProductController::class, 'store']);
     Route::put('/products/{id}', [AdminProductController::class, 'update']);
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
+    Route::post('/products/{productId}/images', [AdminProductImageController::class, 'store']);
+    Route::delete('/products/{productId}/images/{imageId}', [AdminProductImageController::class, 'destroy']);
+    Route::put('/products/{productId}/images/sort', [AdminProductImageController::class, 'updateSort']);
 
     Route::get('/categories', [AdminCategoryController::class, 'index']);
     Route::post('/categories', [AdminCategoryController::class, 'store']);

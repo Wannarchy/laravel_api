@@ -90,12 +90,18 @@ class OrderController extends Controller
             billingName: $request->billing_name,
             billingAddress: $request->billing_address,
             promoCode: $request->promo_code,
-            cardLast4: $user->pm_last_four,
+            cardLast4: $user->fresh()->pm_last_four,
             stripeSubscriptionIds: $stripeSubscriptionIds,
+            shippingName: $request->shipping_name,
+            shippingAddress: $request->shipping_address,
         );
 
+        if ($user->pm_type && ! $order->payment_brand) {
+            $order->update(['payment_brand' => $user->pm_type]);
+        }
+
         return response()->json([
-            'data' => new OrderResource($order),
+            'data' => new OrderResource($order->fresh()->load(['items.product'])),
         ], 201);
     }
 }

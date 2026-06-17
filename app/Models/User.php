@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'mot_de_passe',
         'est_confirme',
         'token_confirmation',
+        'token_confirmation_expires_at',
         'token_reinitialisation',
         'expiration_token',
         'is_admin',
@@ -44,6 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'est_confirme' => 'boolean',
             'is_admin' => 'boolean',
             'est_actif' => 'boolean',
+            'token_confirmation_expires_at' => 'datetime',
             'expiration_token' => 'datetime',
             'date_inscription' => 'datetime',
             'derniere_connexion' => 'datetime',
@@ -65,21 +67,46 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->forceFill([
             'est_confirme' => true,
             'token_confirmation' => null,
+            'token_confirmation_expires_at' => null,
         ])->save();
     }
 
-    public function markEmailAsUnverified(): bool
+    public function issueEmailVerificationToken(): string
     {
-        return $this->forceFill([
-            'est_confirme' => false,
+        $token = Str::random(64);
+
+        $this->forceFill([
+            'token_confirmation' => $token,
+            'token_confirmation_expires_at' => now()->addHours(
+                (int) config('cyna.email_verification_expire_hours', 24)
+            ),
         ])->save();
+
+        return $token;
+    }
+
+    public function isEmailVerificationTokenExpired(): bool
+    {
+        return $this->token_confirmation_expires_at !== null
+            && $this->token_confirmation_expires_at->isPast();
+    }
+
+    public function isEmailVerificationTokenValid(string $token): bool
+    {
+        if ($this->token_confirmation === null || $token === '') {
+            return false;
+        }
+
+        if (! hash_equals((string) $this->token_confirmation, $token)) {
+            return false;
+        }
+
+        return ! $this->isEmailVerificationTokenExpired();
     }
 
     public function sendEmailVerificationNotification(): void
     {
-        if (! $this->token_confirmation) {
-            $this->forceFill(['token_confirmation' => Str::random(64)])->save();
-        }
+        $this->issueEmailVerificationToken();
 
         $this->notify(new EmailVerificationNotification);
     }

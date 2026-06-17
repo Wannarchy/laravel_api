@@ -13,6 +13,8 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
+        'description',
+        'technical_specs',
         'image_path',
         'price_monthly',
         'price_yearly',
@@ -21,6 +23,7 @@ class Product extends Model
         'stripe_price_id_yearly',
         'is_available',
         'stock',
+        'requires_shipping',
         'is_featured',
         'featured_order',
     ];
@@ -30,8 +33,10 @@ class Product extends Model
         return [
             'price_monthly' => 'decimal:2',
             'price_yearly' => 'decimal:2',
+            'technical_specs' => 'array',
             'is_available' => 'boolean',
             'stock' => 'integer',
+            'requires_shipping' => 'boolean',
             'is_featured' => 'boolean',
         ];
     }
@@ -44,6 +49,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class, 'product_id')->orderBy('sort_order');
     }
 
     public function orderItems(): HasMany

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\PasswordRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,7 +49,7 @@ class AdminUserController extends Controller
             'est_confirme' => ['sometimes', 'boolean'],
             'is_admin' => ['sometimes', 'boolean'],
             'est_actif' => ['sometimes', 'boolean'],
-            'password' => ['sometimes', 'string', 'min:8'],
+            'password' => ['sometimes', 'string', PasswordRules::rule()],
         ]);
 
         if (isset($validated['password'])) {

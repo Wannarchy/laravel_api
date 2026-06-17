@@ -18,14 +18,17 @@ class EmailVerificationNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = config('app.url').'/api/auth/verify-email';
+        $hours = (int) config('cyna.email_verification_expire_hours', 24);
+        $baseUrl = rtrim((string) config('cyna.frontend_url'), '/');
+        $verifyUrl = $baseUrl.'/confirmer-email.php?id='.$notifiable->id.'&token='.$notifiable->token_confirmation;
 
         return (new MailMessage)
-            ->subject('Vérification de votre email — CYNA')
+            ->subject('Confirmez votre inscription — CYNA')
+            ->greeting('Bonjour '.$notifiable->prenom.' !')
             ->line('Merci de vous être inscrit sur CYNA.')
-            ->line('Utilisez le token ci-dessous pour confirmer votre adresse email :')
-            ->line('**'.$notifiable->token_confirmation.'**')
-            ->action('Vérifier mon email', $url.'?id='.$notifiable->id.'&token='.$notifiable->token_confirmation)
-            ->line('Si vous n\'avez pas créé de compte, ignorez cet email.');
+            ->line('Pour activer votre compte, cliquez sur le bouton ci-dessous. Ce lien est unique et ne peut être utilisé qu\'une seule fois.')
+            ->action('Confirmer mon inscription', $verifyUrl)
+            ->line('Ce lien expire dans '.$hours.' heure'.($hours > 1 ? 's' : '').'.')
+            ->line('Si vous n\'avez pas créé de compte sur CYNA, ignorez cet email.');
     }
 }

@@ -44,3 +44,15 @@ Schedule::call(function () {
             'expiration_token' => null,
         ]);
 })->daily()->name('users:purge-expired-reset-tokens');
+
+Schedule::call(function () {
+    User::query()
+        ->where('est_confirme', false)
+        ->whereNotNull('token_confirmation')
+        ->whereNotNull('token_confirmation_expires_at')
+        ->where('token_confirmation_expires_at', '<', now())
+        ->update([
+            'token_confirmation' => null,
+            'token_confirmation_expires_at' => null,
+        ]);
+})->daily()->name('users:purge-expired-email-verification-tokens');

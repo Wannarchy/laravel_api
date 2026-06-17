@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAddressRequest extends FormRequest
 {
@@ -18,6 +19,7 @@ class StoreAddressRequest extends FormRequest
 
         return [
             'label' => ['nullable', 'string', 'max:80'],
+            'usage_type' => ['nullable', Rule::in(['billing', 'shipping', 'both'])],
             'prenom' => [...$required, 'string', 'max:80'],
             'nom' => [...$required, 'string', 'max:80'],
             'adresse1' => [...$required, 'string', 'max:200'],
@@ -28,6 +30,7 @@ class StoreAddressRequest extends FormRequest
             'pays' => ['nullable', 'string', 'max:80'],
             'telephone' => ['nullable', 'string', 'max:30'],
             'is_default' => ['nullable', 'boolean'],
+            'is_default_shipping' => ['nullable', 'boolean'],
         ];
     }
 }

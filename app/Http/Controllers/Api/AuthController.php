@@ -7,11 +7,11 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\PasswordRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -23,7 +23,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'mot_de_passe' => Hash::make($request->password),
             'est_confirme' => false,
-            'token_confirmation' => Str::random(64),
             'est_actif' => true,
         ]);
 
@@ -87,7 +86,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => ['required', 'email'],
             'token' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => PasswordRules::required(),
         ]);
 
         $status = Password::reset(
@@ -118,12 +117,27 @@ class AuthController extends Controller
             ? User::find($request->integer('id'))
             : User::where('email', $request->email)->first();
 
-        if (! $user || ! hash_equals((string) $user->token_confirmation, (string) $request->token)) {
+        if (! $user) {
             return response()->json(['message' => 'Lien de vérification invalide.'], 422);
         }
 
         if ($user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email déjà vérifié.']);
+        }
+
+        $token = (string) $request->token;
+        $tokenMatches = $user->token_confirmation
+            && hash_equals((string) $user->token_confirmation, $token);
+
+        if ($tokenMatches && $user->isEmailVerificationTokenExpired()) {
+            return response()->json([
+                'message' => 'Ce lien de confirmation a expiré. Demandez un nouvel email de vérification.',
+                'expired' => true,
+            ], 422);
+        }
+
+        if (! $user->isEmailVerificationTokenValid($token)) {
+            return response()->json(['message' => 'Lien de vérification invalide.'], 422);
         }
 
         $user->markEmailAsVerified();
@@ -133,9 +147,14 @@ class AuthController extends Controller
 
     public function resendVerificationByEmail(Request $request): JsonResponse
     {
-        $request->validate(['email' => ['required', 'email']]);
+        $request->validate([
+            'email' => ['required_without:id', 'email'],
+            'id' => ['required_without:email', 'integer'],
+        ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->filled('id')
+            ? User::find($request->integer('id'))
+            : User::where('email', $request->email)->first();
 
         if ($user && ! $user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();

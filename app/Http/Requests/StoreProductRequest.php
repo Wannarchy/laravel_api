@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
@@ -13,9 +14,34 @@ class StoreProductRequest extends FormRequest
 
     public function rules(): array
     {
+        $productId = $this->route('id');
+
         return [
-            'category_id' => ['nullable', 'integer', 'min:1', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:200'],
+            'category_id' => ['required', 'integer', 'min:1', 'exists:categories,id'],
+            'name' => [
+                'required',
+                'string',
+                'max:200',
+                function (string $attribute, mixed $value, \Closure $fail) use ($productId): void {
+                    $normalized = mb_strtolower(trim((string) $value));
+
+                    if ($normalized === '') {
+                        return;
+                    }
+
+                    $exists = Product::query()
+                        ->whereRaw('LOWER(TRIM(name)) = ?', [$normalized])
+                        ->when($productId, fn ($query) => $query->where('id', '!=', $productId))
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('Un produit avec ce nom existe déjà.');
+                    }
+                },
+            ],
+            'description' => ['nullable', 'string', 'max:10000'],
+            'technical_specs' => ['nullable', 'array'],
+            'technical_specs.*' => ['string', 'max:500'],
             'image_path' => ['nullable', 'string', 'max:512'],
             'price_monthly' => ['required', 'numeric', 'min:0'],
             'price_yearly' => ['required', 'numeric', 'min:0'],
@@ -24,8 +50,19 @@ class StoreProductRequest extends FormRequest
             'stripe_price_id_yearly' => ['nullable', 'string', 'max:120'],
             'is_available' => ['nullable', 'boolean'],
             'stock' => ['nullable', 'integer', 'min:0'],
+            'requires_shipping' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
             'featured_order' => ['nullable', 'integer', 'min:0'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Le nom du produit est obligatoire.',
+            'name.max' => 'Le nom du produit ne peut pas dépasser 200 caractères.',
+            'category_id.required' => 'La catégorie est obligatoire.',
+            'category_id.exists' => 'La catégorie sélectionnée est invalide.',
         ];
     }
 
@@ -40,10 +77,6 @@ class StoreProductRequest extends FormRequest
                     $merge[$field] = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? ($value === '1');
                 }
             }
-        }
-
-        if ($this->has('category_id') && $this->input('category_id') === '') {
-            $merge['category_id'] = null;
         }
 
         if ($merge !== []) {
