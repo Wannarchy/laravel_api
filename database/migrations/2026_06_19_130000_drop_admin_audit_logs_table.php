@@ -9,14 +9,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('admin_audit_logs') && ! Schema::hasTable('logs')) {
-            Schema::rename('admin_audit_logs', 'logs');
+        if (! Schema::hasTable('admin_audit_logs')) {
+            return;
         }
 
-        if (Schema::hasTable('admin_audit_logs') && Schema::hasTable('logs')) {
+        if (! Schema::hasTable('logs')) {
+            Schema::rename('admin_audit_logs', 'logs');
+        } else {
             $rows = DB::table('admin_audit_logs')->orderBy('id')->get();
 
             foreach ($rows as $row) {
+                $exists = DB::table('logs')
+                    ->where('admin_id', $row->admin_id)
+                    ->where('action', $row->action)
+                    ->where('created_at', $row->created_at)
+                    ->exists();
+
+                if ($exists) {
+                    continue;
+                }
+
                 DB::table('logs')->insert([
                     'actor_type' => 'admin',
                     'admin_id' => $row->admin_id,
@@ -29,8 +41,6 @@ return new class extends Migration
                     'created_at' => $row->created_at,
                 ]);
             }
-
-            Schema::dropIfExists('admin_audit_logs');
         }
 
         if (Schema::hasTable('logs') && ! Schema::hasColumn('logs', 'user_id')) {
@@ -61,32 +71,12 @@ return new class extends Migration
                 ->update(['actor_type' => 'user']);
         }
 
-        if (Schema::hasTable('account_deletion_logs') && Schema::hasTable('logs')) {
-            $rows = DB::table('account_deletion_logs')->orderBy('id')->get();
-
-            foreach ($rows as $row) {
-                DB::table('logs')->insert([
-                    'actor_type' => 'user',
-                    'admin_id' => null,
-                    'user_id' => $row->user_id,
-                    'action' => $row->action ?? 'account.self_deleted',
-                    'target_type' => 'User',
-                    'target_id' => $row->user_id,
-                    'ip' => null,
-                    'details' => json_encode(['method' => 'DELETE']),
-                    'created_at' => $row->created_at,
-                ]);
-            }
-
-            Schema::dropIfExists('account_deletion_logs');
-        }
-
         Schema::dropIfExists('admin_audit_logs');
         Schema::dropIfExists('account_deletion_logs');
     }
 
     public function down(): void
     {
-        // Migration irréversible : admin_audit_logs n'est plus utilisée.
+        // Table volontairement non recréée.
     }
 };
