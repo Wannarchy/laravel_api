@@ -23,10 +23,17 @@ class ProductController extends Controller
             $query->where('is_featured', filter_var($request->is_featured, FILTER_VALIDATE_BOOLEAN));
         }
 
-        $products = $query
-            ->orderBy('featured_order')
-            ->orderBy('name')
-            ->get();
+        $query->orderBy('featured_order')->orderBy('name');
+
+        if ($request->filled('page') || $request->filled('per_page')) {
+            $perPage = min(48, max(1, $request->integer('per_page', 12)));
+
+            return ProductResource::collection(
+                $query->paginate($perPage)->appends($request->query())
+            )->response();
+        }
+
+        $products = $query->get();
 
         return response()->json([
             'data' => ProductResource::collection($products),
