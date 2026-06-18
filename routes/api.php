@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AddressController;
-use App\Http\Controllers\Api\Admin\AdminAuditLogController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\LogController;
 use App\Http\Controllers\Api\Admin\AdminUploadController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 use App\Http\Controllers\Api\Admin\AdminChatController;
@@ -78,7 +78,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 });
 
 Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin', 'admin.audit'])->group(function () {
-    Route::get('/audit-logs', [AdminAuditLogController::class, 'index']);
+    Route::get('/logs', [LogController::class, 'index']);
 
     Route::get('/users', [AdminUserController::class, 'index']);
     Route::get('/users/{id}', [AdminUserController::class, 'show']);

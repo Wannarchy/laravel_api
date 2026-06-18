@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\AdminAuditLogger;
+use App\Services\AuditLogger;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class LogAdminAudit
+class LogAudit
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -21,11 +21,11 @@ class LogAdminAudit
             return $response;
         }
 
-        if ($request->is('api/admin/audit-logs*')) {
+        if ($request->is('api/admin/logs*')) {
             return $response;
         }
 
-        AdminAuditLogger::logFromRequest($request);
+        AuditLogger::logFromRequest($request);
 
         return $response;
     }

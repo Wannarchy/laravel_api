@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AdminAuditLog extends Model
+class ActivityLog extends Model
 {
     public $timestamps = false;
 
-    protected $table = 'admin_audit_logs';
+    protected $table = 'logs';
 
     protected $fillable = [
         'admin_id',
+        'user_id',
         'action',
         'target_type',
         'target_id',
@@ -32,5 +33,10 @@ class AdminAuditLog extends Model
     public function admin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'admin_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

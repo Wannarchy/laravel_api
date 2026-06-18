@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\AccountDeletionLog;
+use App\Services\AuditLogger;
 use App\Models\ChatLog;
 use App\Models\ContactMessage;
 use App\Models\ProductSubscription;
@@ -30,11 +30,14 @@ class AccountDeletionService
             $this->detachBillingRecords($userId);
             $this->revokeSessions($user);
 
-            AccountDeletionLog::create([
-                'user_id' => $userId,
-                'action' => 'account.self_deleted',
-                'created_at' => now(),
-            ]);
+            AuditLogger::log(
+                action: 'account.self_deleted',
+                targetType: 'User',
+                targetId: $userId,
+                details: ['method' => 'DELETE'],
+                request: request(),
+                userId: $userId,
+            );
 
             $user->delete();
         });

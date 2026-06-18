@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
-use App\Http\Middleware\LogAdminAudit;
+use App\Http\Middleware\LogAudit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => IsAdmin::class,
             'active' => EnsureUserIsActive::class,
-            'admin.audit' => LogAdminAudit::class,
+            'admin.audit' => LogAudit::class,
             'optional.sanctum' => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
     })

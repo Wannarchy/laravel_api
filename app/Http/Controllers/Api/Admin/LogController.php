@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AdminAuditLogResource;
-use App\Models\AdminAuditLog;
+use App\Http\Resources\LogResource;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class AdminAuditLogController extends Controller
+class LogController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = AdminAuditLog::with('admin')->orderByDesc('created_at');
+        $query = ActivityLog::with(['admin', 'user'])->orderByDesc('created_at');
 
         if ($request->filled('admin_id')) {
             $query->where('admin_id', $request->integer('admin_id'));
+        }
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->integer('user_id'));
         }
 
         if ($request->filled('action')) {
@@ -45,13 +49,18 @@ class AdminAuditLogController extends Controller
                         $adminQuery->where('email', 'like', $term)
                             ->orWhere('prenom', 'like', $term)
                             ->orWhere('nom', 'like', $term);
+                    })
+                    ->orWhereHas('user', function ($userQuery) use ($term) {
+                        $userQuery->where('email', 'like', $term)
+                            ->orWhere('prenom', 'like', $term)
+                            ->orWhere('nom', 'like', $term);
                     });
             });
         }
 
         $logs = $query->paginate($request->integer('per_page', 50));
         $logs->getCollection()->transform(
-            fn (AdminAuditLog $log) => (new AdminAuditLogResource($log))->resolve()
+            fn (ActivityLog $log) => (new LogResource($log))->resolve()
         );
 
         return response()->json(['data' => $logs]);

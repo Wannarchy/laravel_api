@@ -2,44 +2,42 @@
 
 namespace App\Services;
 
-use App\Models\AdminAuditLog;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
-class AdminAuditLogger
+class AuditLogger
 {
-    private const SENSITIVE_KEYS = [
-        'password',
-        'password_confirmation',
-        'mot_de_passe',
-        'token',
-        'token_confirmation',
-        'token_reinitialisation',
-        'stripe_secret',
-        'mail_password',
-        'api_key',
-        'api_secret',
-    ];
-
     public static function log(
         string $action,
         ?string $targetType = null,
         ?int $targetId = null,
         ?array $details = null,
         ?Request $request = null,
+        ?int $adminId = null,
+        ?int $userId = null,
     ): void {
         $request ??= request();
-        $admin = $request->user();
+        $actor = $request->user();
 
-        if (! $admin || ! (int) $admin->is_admin) {
+        if ($adminId === null && $userId === null && $actor) {
+            if ((int) $actor->is_admin) {
+                $adminId = $actor->id;
+            } else {
+                $userId = $actor->id;
+            }
+        }
+
+        if ($adminId === null && $userId === null) {
             return;
         }
 
-        AdminAuditLog::create([
-            'admin_id' => $admin->id,
+        ActivityLog::create([
+            'admin_id' => $adminId,
+            'user_id' => $userId,
             'action' => $action,
             'target_type' => $targetType,
             'target_id' => $targetId,
-            'ip' => $request->ip(),
+            'ip' => $request?->ip(),
             'details' => $details,
             'created_at' => now(),
         ]);
@@ -50,10 +48,7 @@ class AdminAuditLogger
         [$action, $targetType, $targetId] = self::resolveContext($request);
 
         self::log($action, $targetType, $targetId, [
-            'method' => $request->method(),
-            'path' => '/'.$request->path(),
-            'input' => self::sanitizeInput($request->all()),
-            'route_parameters' => $request->route()?->parameters() ?? [],
+            'method' => strtoupper($request->method()),
         ], $request);
     }
 
@@ -148,7 +143,7 @@ class AdminAuditLogger
         };
     }
 
-  /**
+    /**
      * @param  array<string, mixed>  $params
      */
     private static function extractTargetId(array $params): ?int
@@ -160,32 +155,5 @@ class AdminAuditLogger
         }
 
         return null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
-    private static function sanitizeInput(array $input): array
-    {
-        $sanitized = [];
-
-        foreach ($input as $key => $value) {
-            if (in_array(strtolower((string) $key), self::SENSITIVE_KEYS, true)) {
-                $sanitized[$key] = '[redacted]';
-
-                continue;
-            }
-
-            if (is_array($value)) {
-                $sanitized[$key] = self::sanitizeInput($value);
-
-                continue;
-            }
-
-            $sanitized[$key] = $value;
-        }
-
-        return $sanitized;
     }
 }

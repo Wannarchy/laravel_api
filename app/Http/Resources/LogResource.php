@@ -5,18 +5,25 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminAuditLogResource extends JsonResource
+class LogResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'admin_id' => $this->admin_id,
+            'user_id' => $this->user_id,
             'admin' => $this->whenLoaded('admin', fn () => [
                 'id' => $this->admin?->id,
                 'prenom' => $this->admin?->prenom,
                 'nom' => $this->admin?->nom,
                 'email' => $this->admin?->email,
+            ]),
+            'user' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user?->id,
+                'prenom' => $this->user?->prenom,
+                'nom' => $this->user?->nom,
+                'email' => $this->user?->email,
             ]),
             'action' => $this->action,
             'target_type' => $this->target_type,
