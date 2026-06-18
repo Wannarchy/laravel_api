@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\DeleteAccountRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Services\AccountDeletionService;
 use App\Support\PasswordRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,6 +58,25 @@ class ProfileController extends Controller
         return response()->json([
             'data' => new UserResource($user->fresh()),
             'message' => 'Profil mis à jour.',
+        ]);
+    }
+
+    public function destroy(DeleteAccountRequest $request, AccountDeletionService $accountDeletionService): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! Hash::check($request->validated('current_password'), $user->mot_de_passe)) {
+            return response()->json(['message' => 'Mot de passe actuel incorrect.'], 422);
+        }
+
+        try {
+            $accountDeletionService->delete($user);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Votre compte a été supprimé. Toutes vos données personnelles ont été effacées ou anonymisées.',
         ]);
     }
 }

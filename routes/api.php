@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\Admin\AdminAuditLogController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminUploadController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
@@ -47,6 +48,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::delete('/profile', [ProfileController::class, 'destroy']);
 
     Route::get('/billing/setup-intent', [BillingController::class, 'setupIntent']);
     Route::post('/billing/checkout', [BillingController::class, 'checkout']);
@@ -75,7 +77,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/chat/history', [ChatController::class, 'history']);
 });
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin', 'admin.audit'])->group(function () {
+    Route::get('/audit-logs', [AdminAuditLogController::class, 'index']);
+
     Route::get('/users', [AdminUserController::class, 'index']);
     Route::get('/users/{id}', [AdminUserController::class, 'show']);
     Route::put('/users/{id}', [AdminUserController::class, 'update']);
