@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('logs', function (Blueprint $table) {
             $table->integer('id')->autoIncrement();
+            $table->string('actor_type', 10)->index();
             $table->integer('admin_id')->nullable()->index();
             $table->integer('user_id')->nullable()->index();
             $table->string('action', 120)->index();

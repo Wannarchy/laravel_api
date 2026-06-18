@@ -51,6 +51,10 @@ class AuthController extends Controller
             return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 
+        if ($user->bloquer) {
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
+        }
+
         $user->update(['derniere_connexion' => now()]);
 
         $token = $user->createToken('auth-token')->plainTextToken;

@@ -16,7 +16,6 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'technical_specs' => $this->technical_specs ?? [],
             'image_path' => $this->image_path,
-            'gallery' => ProductImageResource::collection($this->whenLoaded('images')),
             'price_monthly' => $this->price_monthly,
             'price_yearly' => $this->price_yearly,
             'stripe_product_id' => $this->when($request->user()?->is_admin, $this->stripe_product_id),

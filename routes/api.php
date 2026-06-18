@@ -8,7 +8,6 @@ use App\Http\Controllers\Api\Admin\AdminContactController;
 use App\Http\Controllers\Api\Admin\AdminChatController;
 use App\Http\Controllers\Api\Admin\AdminHomepageController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
-use App\Http\Controllers\Api\Admin\AdminProductImageController;
 use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Api\Admin\AdminPromoCodeController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
@@ -83,15 +82,13 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'active', 'admin', 'admin.au
     Route::get('/users', [AdminUserController::class, 'index']);
     Route::get('/users/{id}', [AdminUserController::class, 'show']);
     Route::put('/users/{id}', [AdminUserController::class, 'update']);
+    Route::patch('/users/{id}/bloquer', [AdminUserController::class, 'setBlocked']);
     Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
 
     Route::get('/products', [AdminProductController::class, 'index']);
     Route::post('/products', [AdminProductController::class, 'store']);
     Route::put('/products/{id}', [AdminProductController::class, 'update']);
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
-    Route::post('/products/{productId}/images', [AdminProductImageController::class, 'store']);
-    Route::delete('/products/{productId}/images/{imageId}', [AdminProductImageController::class, 'destroy']);
-    Route::put('/products/{productId}/images/sort', [AdminProductImageController::class, 'updateSort']);
 
     Route::get('/categories', [AdminCategoryController::class, 'index']);
     Route::post('/categories', [AdminCategoryController::class, 'store']);

@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'expiration_token',
         'is_admin',
         'est_actif',
+        'bloquer',
     ];
 
     protected $hidden = [
@@ -45,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'est_confirme' => 'boolean',
             'is_admin' => 'boolean',
             'est_actif' => 'boolean',
+            'bloquer' => 'boolean',
             'token_confirmation_expires_at' => 'datetime',
             'expiration_token' => 'datetime',
             'date_inscription' => 'datetime',

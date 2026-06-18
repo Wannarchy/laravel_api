@@ -31,7 +31,12 @@ class AuditLogger
             return;
         }
 
+        $actorType = $adminId !== null
+            ? ActivityLog::ACTOR_ADMIN
+            : ActivityLog::ACTOR_USER;
+
         ActivityLog::create([
+            'actor_type' => $actorType,
             'admin_id' => $adminId,
             'user_id' => $userId,
             'action' => $action,
@@ -62,20 +67,12 @@ class AuditLogger
         $targetId = self::extractTargetId($params);
         $uri = (string) ($request->route()?->uri() ?? '');
 
+        if (str_contains($uri, 'users/{id}/bloquer')) {
+            return ['user.block_toggle', 'User', $targetId];
+        }
+
         if (str_contains($uri, 'users/{id}')) {
             return [self::verbAction('user', $method), 'User', $targetId];
-        }
-
-        if (str_contains($uri, 'products/{productId}/images/sort')) {
-            return ['product_image.sort', 'Product', isset($params['productId']) ? (int) $params['productId'] : null];
-        }
-
-        if (str_contains($uri, 'products/{productId}/images/{imageId}')) {
-            return ['product_image.delete', 'ProductImage', isset($params['imageId']) ? (int) $params['imageId'] : null];
-        }
-
-        if (str_contains($uri, 'products/{productId}/images')) {
-            return ['product_image.create', 'Product', isset($params['productId']) ? (int) $params['productId'] : null];
         }
 
         if (str_contains($uri, 'products/{id}')) {

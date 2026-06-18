@@ -18,7 +18,7 @@ class AdminProductController extends Controller
 
     public function index(): JsonResponse
     {
-        $products = Product::with(['category', 'images'])
+        $products = Product::with(['category'])
             ->orderBy('featured_order')
             ->orderBy('name')
             ->get();
@@ -36,7 +36,7 @@ class AdminProductController extends Controller
         [$product, $stripeWarning] = $this->syncWithStripe($product);
 
         return response()->json([
-            'data' => new ProductResource($product->load(['category', 'images'])),
+            'data' => new ProductResource($product->load(['category'])),
             'message' => $this->buildMessage('Produit créé', $stripeWarning),
         ], 201);
     }
@@ -56,7 +56,7 @@ class AdminProductController extends Controller
         [$product, $stripeWarning] = $this->syncWithStripe($product->fresh(), $pricesChanged);
 
         return response()->json([
-            'data' => new ProductResource($product->load(['category', 'images'])),
+            'data' => new ProductResource($product->load(['category'])),
             'message' => $this->buildMessage('Produit mis à jour', $stripeWarning),
         ]);
     }

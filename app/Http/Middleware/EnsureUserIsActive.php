@@ -12,7 +12,11 @@ class EnsureUserIsActive
     {
         $user = $request->user();
 
-        if (! $user || (int) $user->est_actif !== 1) {
+        if (! $user || (int) $user->est_actif !== 1 || $user->bloquer) {
+            if ($user?->bloquer) {
+                $user->tokens()->delete();
+            }
+
             return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 

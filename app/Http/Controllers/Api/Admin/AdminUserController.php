@@ -49,6 +49,7 @@ class AdminUserController extends Controller
             'est_confirme' => ['sometimes', 'boolean'],
             'is_admin' => ['sometimes', 'boolean'],
             'est_actif' => ['sometimes', 'boolean'],
+            'bloquer' => ['sometimes', 'boolean'],
             'password' => ['sometimes', 'string', PasswordRules::rule()],
         ]);
 
@@ -58,6 +59,10 @@ class AdminUserController extends Controller
         }
 
         $user->update($validated);
+
+        if (! empty($validated['bloquer'])) {
+            $user->tokens()->delete();
+        }
 
         return response()->json([
             'data' => new UserResource($user->fresh()),
@@ -80,5 +85,37 @@ class AdminUserController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'Utilisateur supprimé.']);
+    }
+
+    public function setBlocked(Request $request, int $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'Utilisateur introuvable.'], 404);
+        }
+
+        if ((bool) $user->is_admin) {
+            return response()->json(['message' => 'Impossible de bloquer un administrateur.'], 422);
+        }
+
+        if ((int) $user->id === (int) auth()->id()) {
+            return response()->json(['message' => 'Vous ne pouvez pas bloquer votre propre compte.'], 422);
+        }
+
+        $validated = $request->validate([
+            'bloquer' => ['required', 'boolean'],
+        ]);
+
+        $user->update(['bloquer' => $validated['bloquer']]);
+
+        if ($validated['bloquer']) {
+            $user->tokens()->delete();
+        }
+
+        return response()->json([
+            'data' => new UserResource($user->fresh()),
+            'message' => $validated['bloquer'] ? 'Utilisateur bloqué.' : 'Utilisateur débloqué.',
+        ]);
     }
 }

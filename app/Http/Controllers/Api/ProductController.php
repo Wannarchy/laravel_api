@@ -35,7 +35,7 @@ class ProductController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $product = Product::with(['category', 'images'])
+        $product = Product::with(['category'])
             ->where('is_available', true)
             ->find($id);
 

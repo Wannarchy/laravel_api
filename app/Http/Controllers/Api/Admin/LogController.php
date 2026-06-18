@@ -14,6 +14,13 @@ class LogController extends Controller
     {
         $query = ActivityLog::with(['admin', 'user'])->orderByDesc('created_at');
 
+        if ($request->filled('actor_type')) {
+            $actorType = $request->string('actor_type');
+            if (in_array($actorType, [ActivityLog::ACTOR_ADMIN, ActivityLog::ACTOR_USER], true)) {
+                $query->where('actor_type', $actorType);
+            }
+        }
+
         if ($request->filled('admin_id')) {
             $query->where('admin_id', $request->integer('admin_id'));
         }

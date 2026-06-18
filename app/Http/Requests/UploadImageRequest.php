@@ -16,7 +16,7 @@ class UploadImageRequest extends FormRequest
     {
         return [
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
-            'folder' => ['nullable', 'string', Rule::in(['products', 'products/gallery', 'categories', 'slides'])],
+            'folder' => ['nullable', 'string', Rule::in(['products', 'categories', 'slides'])],
         ];
     }
 }

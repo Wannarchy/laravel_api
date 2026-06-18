@@ -11,6 +11,7 @@ class LogResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'actor_type' => $this->actor_type,
             'admin_id' => $this->admin_id,
             'user_id' => $this->user_id,
             'admin' => $this->whenLoaded('admin', fn () => [
@@ -24,6 +25,7 @@ class LogResource extends JsonResource
                 'prenom' => $this->user?->prenom,
                 'nom' => $this->user?->nom,
                 'email' => $this->user?->email,
+                'bloquer' => (bool) $this->user?->bloquer,
             ]),
             'action' => $this->action,
             'target_type' => $this->target_type,

@@ -17,6 +17,7 @@ class UserResource extends JsonResource
             'est_confirme' => (bool) $this->est_confirme,
             'is_admin' => (bool) $this->is_admin,
             'est_actif' => (bool) $this->est_actif,
+            'bloquer' => $this->when($request->user()?->is_admin, (bool) $this->bloquer),
             'date_inscription' => $this->date_inscription,
             'derniere_connexion' => $this->derniere_connexion,
         ];
