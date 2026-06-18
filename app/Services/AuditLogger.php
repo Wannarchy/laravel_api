@@ -28,7 +28,9 @@ class AuditLogger
             }
         }
 
-        if ($adminId === null && $userId === null) {
+        $actorId = $adminId ?? $userId;
+
+        if ($actorId === null) {
             return;
         }
 
@@ -38,8 +40,7 @@ class AuditLogger
 
         ActivityLog::create([
             'actor_type' => $actorType,
-            'admin_id' => $adminId,
-            'user_id' => $userId,
+            'user_id' => $actorId,
             'action' => $action,
             'target_type' => $targetType,
             'target_id' => $targetId,

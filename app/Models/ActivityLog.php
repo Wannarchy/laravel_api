@@ -19,7 +19,6 @@ class ActivityLog extends Model
 
     protected $fillable = [
         'actor_type',
-        'admin_id',
         'user_id',
         'action',
         'target_type',
@@ -81,11 +80,6 @@ class ActivityLog extends Model
             get: fn (mixed $value) => self::normalizeDetails($value),
             set: fn (mixed $value) => self::normalizeDetails($value),
         );
-    }
-
-    public function admin(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'admin_id');
     }
 
     public function user(): BelongsTo

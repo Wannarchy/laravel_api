@@ -12,7 +12,7 @@ class LogController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = ActivityLog::with(['admin', 'user'])->orderByDesc('created_at');
+        $query = ActivityLog::with(['user'])->orderByDesc('created_at');
 
         if ($request->filled('actor_type')) {
             $actorType = $request->string('actor_type');
@@ -22,7 +22,8 @@ class LogController extends Controller
         }
 
         if ($request->filled('admin_id')) {
-            $query->where('admin_id', $request->integer('admin_id'));
+            $query->where('user_id', $request->integer('admin_id'))
+                ->where('actor_type', ActivityLog::ACTOR_ADMIN);
         }
 
         if ($request->filled('user_id')) {
@@ -52,11 +53,6 @@ class LogController extends Controller
                     ->orWhere('target_type', 'like', $term)
                     ->orWhere('ip', 'like', $term)
                     ->orWhereRaw('CAST(details AS TEXT) LIKE ?', [$term])
-                    ->orWhereHas('admin', function ($adminQuery) use ($term) {
-                        $adminQuery->where('email', 'like', $term)
-                            ->orWhere('prenom', 'like', $term)
-                            ->orWhere('nom', 'like', $term);
-                    })
                     ->orWhereHas('user', function ($userQuery) use ($term) {
                         $userQuery->where('email', 'like', $term)
                             ->orWhere('prenom', 'like', $term)

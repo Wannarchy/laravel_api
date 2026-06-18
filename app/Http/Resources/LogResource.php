@@ -13,20 +13,14 @@ class LogResource extends JsonResource
         return [
             'id' => $this->id,
             'actor_type' => $this->actor_type,
-            'admin_id' => $this->admin_id,
             'user_id' => $this->user_id,
-            'admin' => $this->whenLoaded('admin', fn () => [
-                'id' => $this->admin?->id,
-                'prenom' => $this->admin?->prenom,
-                'nom' => $this->admin?->nom,
-                'email' => $this->admin?->email,
-            ]),
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user?->id,
                 'prenom' => $this->user?->prenom,
                 'nom' => $this->user?->nom,
                 'email' => $this->user?->email,
                 'bloquer' => (bool) $this->user?->bloquer,
+                'is_admin' => (bool) $this->user?->is_admin,
             ]),
             'action' => $this->action,
             'target_type' => $this->target_type,
