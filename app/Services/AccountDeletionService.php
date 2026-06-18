@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Services\AuditLogger;
 use App\Models\ChatLog;
 use App\Models\ContactMessage;
 use App\Models\ProductSubscription;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserPaymentMethod;
+use App\Services\AuditLogger;
 use Illuminate\Support\Facades\DB;
 use Laravel\Cashier\Subscription as CashierSubscription;
 
@@ -23,21 +23,24 @@ class AccountDeletionService
         $userId = (int) $user->id;
 
         DB::transaction(function () use ($user, $userId): void {
+            AuditLogger::log(
+                'account.self_deleted',
+                'User',
+                $userId,
+                null,
+                request(),
+                null,
+                $userId,
+                false,
+            );
+
             $this->cancelSubscriptions($user);
             $this->purgeStripeData($user);
             $this->deletePersonalData($userId);
             $this->anonymizeContactMessages($userId);
             $this->detachBillingRecords($userId);
+            AuditLogger::anonymizeForDeletedUser($userId);
             $this->revokeSessions($user);
-
-            AuditLogger::log(
-                action: 'account.self_deleted',
-                targetType: 'User',
-                targetId: $userId,
-                details: ['method' => 'DELETE'],
-                request: request(),
-                userId: $userId,
-            );
 
             $user->delete();
         });

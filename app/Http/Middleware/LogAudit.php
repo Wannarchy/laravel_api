@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\AuditLogger;
+use Illuminate\Support\Facades\Log;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,21 +12,25 @@ class LogAudit
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->is('api/admin/logs*')) {
+            return $next($request);
+        }
+
         $response = $next($request);
 
-        if (! in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+        if (! $request->user()) {
             return $response;
         }
 
-        if ($response->getStatusCode() >= 400) {
-            return $response;
+        try {
+            AuditLogger::logFromRequest($request);
+        } catch (\Throwable $e) {
+            Log::error('Échec écriture log activité', [
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'error' => $e->getMessage(),
+            ]);
         }
-
-        if ($request->is('api/admin/logs*')) {
-            return $response;
-        }
-
-        AuditLogger::logFromRequest($request);
 
         return $response;
     }

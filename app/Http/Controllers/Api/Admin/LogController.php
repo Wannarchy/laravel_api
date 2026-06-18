@@ -16,7 +16,7 @@ class LogController extends Controller
 
         if ($request->filled('actor_type')) {
             $actorType = $request->string('actor_type');
-            if (in_array($actorType, [ActivityLog::ACTOR_ADMIN, ActivityLog::ACTOR_USER], true)) {
+            if (in_array($actorType, [ActivityLog::ACTOR_ADMIN, ActivityLog::ACTOR_USER, ActivityLog::ACTOR_GUEST], true)) {
                 $query->where('actor_type', $actorType);
             }
         }

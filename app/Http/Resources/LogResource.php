@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,7 +32,7 @@ class LogResource extends JsonResource
             'target_type' => $this->target_type,
             'target_id' => $this->target_id,
             'ip' => $this->ip,
-            'details' => $this->details,
+            'details' => ActivityLog::normalizeDetails($this->details),
             'created_at' => $this->created_at,
         ];
     }

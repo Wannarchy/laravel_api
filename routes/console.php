@@ -56,3 +56,7 @@ Schedule::call(function () {
             'token_confirmation_expires_at' => null,
         ]);
 })->daily()->name('users:purge-expired-email-verification-tokens');
+
+Schedule::call(function () {
+    \App\Services\AuditLogger::purgeExpired();
+})->daily()->name('logs:purge-expired');
