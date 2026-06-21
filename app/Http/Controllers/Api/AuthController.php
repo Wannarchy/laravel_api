@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\VerifyAdminOtpRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\AdminLoginOtpService;
 use App\Support\PasswordRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,9 @@ use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly AdminLoginOtpService $adminLoginOtpService,
+    ) {}
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -55,6 +60,19 @@ class AuthController extends Controller
             return response()->json(['message' => 'Identifiants invalides.'], 401);
         }
 
+        if ((bool) $user->is_admin) {
+            $challenge = $this->adminLoginOtpService->issue($user);
+
+            return response()->json([
+                'data' => [
+                    'requires_otp' => true,
+                    'challenge_token' => $challenge->challenge_token,
+                    'expires_at' => $challenge->expires_at->toIso8601String(),
+                ],
+                'message' => 'Un code de vérification a été envoyé à votre adresse e-mail.',
+            ]);
+        }
+
         $user->update(['derniere_connexion' => now()]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -64,6 +82,38 @@ class AuthController extends Controller
                 'user' => new UserResource($user),
                 'token' => $token,
             ],
+        ]);
+    }
+
+    public function verifyAdminOtp(VerifyAdminOtpRequest $request): JsonResponse
+    {
+        try {
+            $user = $this->adminLoginOtpService->verify(
+                $request->string('challenge_token')->toString(),
+                $request->string('code')->toString(),
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        if ((int) $user->est_actif !== 1) {
+            return response()->json(['message' => 'Compte désactivé.'], 403);
+        }
+
+        if ($user->bloquer) {
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
+        }
+
+        $user->update(['derniere_connexion' => now()]);
+
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'data' => [
+                'user' => new UserResource($user),
+                'token' => $token,
+            ],
+            'message' => 'Connexion administrateur réussie.',
         ]);
     }
 

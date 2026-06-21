@@ -31,6 +31,7 @@ Route::middleware([LogAudit::class])->group(function () {
     Route::prefix('auth')->middleware('throttle:60,1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/verify-admin-otp', [AuthController::class, 'verifyAdminOtp'])->middleware('throttle:10,1');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password', [AuthController::class, 'resetPassword']);
         Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
@@ -65,6 +66,7 @@ Route::middleware([LogAudit::class])->group(function () {
 
         Route::get('/subscriptions', [SubscriptionController::class, 'index']);
         Route::post('/subscriptions/{id}/cancel', [SubscriptionController::class, 'cancel']);
+        Route::post('/subscriptions/{id}/change-cycle', [SubscriptionController::class, 'changeCycle']);
 
         Route::get('/addresses', [AddressController::class, 'index']);
         Route::post('/addresses', [AddressController::class, 'store']);

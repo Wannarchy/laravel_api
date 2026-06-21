@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductSubscription;
 use App\Models\PromoCode;
 use App\Models\User;
+use App\Notifications\OrderConfirmationNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -81,7 +82,7 @@ class OrderFulfillmentService
         ?string $shippingName = null,
         ?string $shippingAddress = null,
     ): Order {
-        return DB::transaction(function () use (
+        $order = DB::transaction(function () use (
             $user,
             $items,
             $billingName,
@@ -162,6 +163,12 @@ class OrderFulfillmentService
 
             return $order->load(['items.product']);
         });
+
+        if ($order->status === 'paid') {
+            $user->notify(new OrderConfirmationNotification($order));
+        }
+
+        return $order;
     }
 
     private function isPromoValid(PromoCode $promo, float $amount): bool

@@ -30,10 +30,12 @@ class StripeWebhookListener
         ProductSubscription::query()
             ->where('stripe_subscription_id', $subscription['id'])
             ->where('status', 'active')
-            ->update([
-                'status' => 'cancelled',
-                'cancelled_at' => now(),
-            ]);
+            ->each(function (ProductSubscription $productSubscription): void {
+                $productSubscription->update([
+                    'status' => 'cancelled',
+                    'cancelled_at' => $productSubscription->cancelled_at ?? now(),
+                ]);
+            });
     }
 
     private function handleInvoicePaid(array $invoice): void
@@ -47,6 +49,7 @@ class StripeWebhookListener
         ProductSubscription::query()
             ->where('stripe_subscription_id', $subscriptionId)
             ->where('status', 'active')
+            ->whereNull('cancelled_at')
             ->each(function (ProductSubscription $subscription) {
                 $nextBilling = $subscription->cycle === 'yearly'
                     ? now()->addYear()

@@ -12,6 +12,7 @@ storage/framework/views/*
 bootstrap/cache/*
 tests
 .phpunit.result.cache
+.phpunit.cache
 phpunit.xml
 Dockerfile
 docker-compose.yml

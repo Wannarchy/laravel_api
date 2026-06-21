@@ -24,6 +24,28 @@ class UserFactory extends Factory
             'token_confirmation' => null,
             'is_admin' => false,
             'est_actif' => true,
+            'bloquer' => false,
         ];
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
+    }
+
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'est_confirme' => false,
+        ]);
+    }
+
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'bloquer' => true,
+        ]);
     }
 }

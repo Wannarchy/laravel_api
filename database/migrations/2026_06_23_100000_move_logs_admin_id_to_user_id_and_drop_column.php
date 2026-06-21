@@ -28,6 +28,10 @@ return new class extends Migration
                 ]);
 
             Schema::table('logs', function (Blueprint $table) {
+                $table->dropIndex('logs_admin_id_index');
+            });
+
+            Schema::table('logs', function (Blueprint $table) {
                 $table->dropColumn('admin_id');
             });
         }

@@ -16,6 +16,7 @@ Schedule::call(function () {
     ProductSubscription::query()
         ->with(['user', 'product'])
         ->where('status', 'active')
+        ->whereNull('cancelled_at')
         ->whereDate('next_billing', now()->addDay()->toDateString())
         ->where('renewal_notified', false)
         ->each(function (ProductSubscription $subscription) {

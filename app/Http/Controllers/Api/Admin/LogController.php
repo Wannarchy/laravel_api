@@ -15,7 +15,7 @@ class LogController extends Controller
         $query = ActivityLog::with(['user'])->orderByDesc('created_at');
 
         if ($request->filled('actor_type')) {
-            $actorType = $request->string('actor_type');
+            $actorType = $request->string('actor_type')->toString();
             if (in_array($actorType, [ActivityLog::ACTOR_ADMIN, ActivityLog::ACTOR_USER, ActivityLog::ACTOR_GUEST], true)) {
                 $query->where('actor_type', $actorType);
             }

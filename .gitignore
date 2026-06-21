@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+Cyna_front/
 Cyna_front/.env
 .phpactor.json
 .phpunit.result.cache
@@ -26,3 +27,4 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+tests
