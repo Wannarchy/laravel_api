@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdminLoginOtp extends Model
 {
+    protected $table = 'login_otps';
+
     protected $fillable = [
         'user_id',
         'challenge_token',
